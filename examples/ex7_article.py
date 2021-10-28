@@ -8,20 +8,20 @@
 
 
 def bar(x, y):
-    def f(a):
-        def g1(u):
-            def g2(v):
-                return u + v
-            return u
-    return f(x)
+    def lambda_1(u):
+        def lambda_2(v):
+            return u + v
+        return lambda_2
+    f = lambda_1
+    return f(x)(y)
 
 
 # (define  plus
 #     (lambda (x)
 #         (lambda (y) (+ y x )) ))
 
-def plus():
-    def x():
-        return x
-    def y():
+def lambda_3(x):
+    def lambda_4(y):
         return y + x
+    return lambda_4
+plus = lambda_3
