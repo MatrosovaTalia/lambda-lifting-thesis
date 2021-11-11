@@ -1,4 +1,4 @@
-/* YACC Declarations */
+/* BNF Declarations */
 
 // Identifiers & numbers
 %token  IDENTIFIER
