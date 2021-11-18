@@ -1,11 +1,13 @@
 # This one is the example from the article.
-# I cannot understand how to adapt it to python-like language. 
+
+# Paper: 
 
 # (define (bar x y)
 #     (let ((f (lambda(u)(lambda(v)(+ u v)))))
 # "    - f is applied to lambda(u) and then result is applied to (lambda(v)(+ u v))?"
 #     ((f x) y) ))
 
+# Lambda lifting is not possible here: F contains non-liftable lambda term.
 
 def bar(x, y):
     def f(a):
@@ -13,12 +15,10 @@ def bar(x, y):
             def g2(v):
                 return u + v
             return u
-    return f(x)
+    return f(x)()
 
 
-# (define  plus
-#     (lambda (x)
-#         (lambda (y) (+ y x )) ))
+
 
 def plus():
     def x():
