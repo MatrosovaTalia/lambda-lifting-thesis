@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -w #-}
 module Main where
+import Data.Char
 import qualified Data.Array as Happy_Data_Array
 import qualified Data.Bits as Bits
 import Control.Applicative(Applicative(..))
@@ -226,8 +227,8 @@ happyReduce_10 = happySpecReduce_1  7 happyReduction_10
 happyReduction_10 (HappyTerminal (TokenVar happy_var_1))
 	 =  HappyAbsSyn7
 		 (\p -> case lookup happy_var_1 p of
-	                                    Nothing -> error "no var"
-					    Just i  -> i
+ 	                                    Nothing -> error "no var"
+ 					    Just i  -> i
 	)
 happyReduction_10 _  = notHappyAtAll 
 
@@ -293,43 +294,43 @@ happySeq = happyDontSeq
 
 
 parseError :: [Token] -> a
-    parseError _ = error "Parse error"
-    data Exp  
-        = Let String Exp Exp
-        | Exp1 Exp1
-    deriving Show
+parseError _ = error "Parse error"
+data Exp  
+      = Let String Exp Exp
+      | Exp1 Exp1
+      deriving Show
 
-    data Exp1 
-        = Plus Exp1 Term 
-        | Minus Exp1 Term 
-        | Term Term
-    deriving Show
+data Exp1 
+      = Plus Exp1 Term 
+      | Minus Exp1 Term 
+      | Term Term
+      deriving Show
 
-    data Term 
-        = Times Term Factor 
-        | Div Term Factor 
-        | Factor Factor
-    deriving Show
+data Term 
+      = Times Term Factor 
+      | Div Term Factor 
+      | Factor Factor
+      deriving Show
 
-    data Factor 
-        = Int Int 
-        | Var String 
-        | Brack Exp
-    deriving Show
+data Factor 
+      = Int Int 
+      | Var String 
+      | Brack Exp
+      deriving Show
 
-    data Token
-        = TokenLet
-        | TokenIn
-        | TokenInt Int
-        | TokenVar String
-        | TokenEq
-        | TokenPlus
-        | TokenMinus
-        | TokenTimes
-        | TokenDiv
-        | TokenOB
-        | TokenCB
-    deriving Show
+data Token
+      = TokenLet
+      | TokenIn
+      | TokenInt Int
+      | TokenVar String
+      | TokenEq
+      | TokenPlus
+      | TokenMinus
+      | TokenTimes
+      | TokenDiv
+      | TokenOB
+      | TokenCB
+      deriving Show
 
 lexer :: String -> [Token]
 lexer [] = []
@@ -354,7 +355,7 @@ lexVar cs =
       ("in",rest)  -> TokenIn : lexer rest
       (var,rest)   -> TokenVar var : lexer rest
 
-      main = getContents >>= print . calc . lexer
+main = getContents >>= print . flip calc [] . lexer
 {-# LINE 1 "templates/GenericTemplate.hs" #-}
 -- $Id: GenericTemplate.hs,v 1.26 2005/01/14 14:47:22 simonmar Exp $
 
