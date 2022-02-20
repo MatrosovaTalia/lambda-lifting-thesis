@@ -2,80 +2,40 @@
 import Data.List ((\\))
 import Text.Show
 
+type Program
+    = [Statement]
 
-
-data Fun 
-    = Exp
-    | Identifier Parameters Body
-    deriving (Show)
-
-
--- data FunCall Parameters
---     = Exp
---     deriving (Show)
-
-data Identifier
+type Identifier
     = String
+
+type Body 
+    = [Declaration]
+
+data Declaration
+    = Return Exp
+    | Statement Statement
     deriving (Show)
 
 data Statement 
-    = IfStatement
-    | Return
-    | WhileLoop
-    | ForLoop
+    = Assignment Identifier Exp
+    | RoutineCallS Identifier [Exp]
+    | WhileLoop Exp Body
+    | ForLoop Identifier Exp Exp Body
+    | IfStatement Exp Body (Maybe Body)
+    | Print [Exp]
+    | RoutineDeclaration Def 
     deriving (Show)
 
-data IfStatement 
-    = Condition IfBody ElseBody
-    | IfBody
+data Def
+    = Def Identifier Parameters Body
     deriving (Show)
 
-data IfBody
-    = Body
-    deriving (Show)
-
-data Return
-    = Exp
-    deriving (Show)
-
-data WhileLoop
-    = Exp
-    deriving (Show)
-
-data 
-
-data Return Exp
-    = Exp
-    deriving (Show)
-
-data WhileLoop Condition Body
-    = Exp
-    deriving (Show)
-
-data ForLoop Condition Body
-    = Exp
-    deriving (Show)
-
-data Condition
-    = BoolExp
-    deriving (Show)
-
-data Body 
-    = [Exp]
-    deriving (Show)
-
-data Parameters
+type Parameters
     = [Identifier]
-    deriving (Show) 
 
 data Exp
-    = Let Identifier Exp Exp      -- let x = e1 in e2
-    | Summand Summand
-    deriving (Show)
-
-data Summand
-    = Plus Summand Term          -- e + t
-    | Minus Summand Term         -- e - t
+    = Plus Exp Term          -- e + t
+    | Minus Exp Term         -- e - t
     | Term Term               -- t
     deriving (Show)
 
@@ -87,56 +47,42 @@ data Term
 
 data Factor
     = Int Int
-    | Var String
+    | Var Identifier
     | Brack Exp
+    | RoutineCall Identifier [Exp]
     deriving (Show)
 
-data Identifier
-    = String
-    deriving (Show)
-
-
--- let z = 4 in x * 3 - (1 - y) + z
-example1 :: Exp
-example1 =
-  Let "z" (Summand (Term (Factor (Int 4))))
-    (Summand (Plus
-      (Minus
-        (Term (Times (Factor (Var "x")) (Int 3)))
-        (Factor (Brack (Summand (Minus (Term (Factor (Int 1))) (Factor (Var "y"))))))
-      )
-      (Factor (Var "z"))
-    ))
-
-exampleSum :: Fun
-exampleSum =
-    def sum(n):
-    if n == 1:
-        return 1
-    else:
-        Fun("def" Identifier("sum_2") (Factor (Var "x") Factor(Var "y")):
-            Return("return" (Summand (Plus (Term (Factor (Var "x") Factor (Var "y")))))
-            "end")
-        return sum_2(Factor((Var "n")), FunCall(sum Parameters ((Summand (Plus (Term (Factor(Var "n") Factor(Var "1"))))))))
-    end
 
 
 -- # free vars in the body of f: z
 -- def f(x, y):
 --   return z + x + y     # z, x, y
 
-freeVars :: Exp -> [String]
-freeVars exp =
-  case exp of
-    Let x e1 e2 -> freeVars e1 ++ (freeVars e2 \\ [x])
-    Summand Summand   -> freeVarsSummand Summand
+freeVarsDef :: Def -> [String]
+freeVarsDef Def id parameters body = 
+    (freeVarsBody body \\ parameters) \\ [id]
 
-freeVarsSummand :: Summand -> [String]
-freeVarsSummand Summand =
-  case Summand of
-    Plus e t  -> freeVarsSummand e ++ freeVarsTerm t
-    Minus e t -> freeVarsSummand e ++ freeVarsTerm t
-    Term t    -> freeVarsTerm t
+
+freeVarsBody :: Declaration -> [String]
+freeVarsBody Declaration = 
+    case Declaration of
+        Return exp = freeVarsExp exp
+        Statement st = freeVarsStatement st
+
+freeVarsStatement :: Statement -> [String]
+freeVarsStatement Statement =
+    case Statement of
+        Assignment id exp = freeVarsExp exp
+        RiutineCallS id exps
+
+
+
+freeVarsExp :: Exp -> [String]
+freeVarsExp Exp =
+  case Exp of
+    Plus exp term  -> freeVarsExp exp ++ freeVarsTerm term
+    Minus exp term -> freeVarsExp exp ++ freeVarsTerm term
+    Term term    -> freeVarsTerm term
 
 freeVarsTerm :: Term -> [String]
 freeVarsTerm t =
