@@ -62,24 +62,27 @@ freeVarsDef :: Def -> [String]
 freeVarsDef Def id parameters body = 
     (freeVarsBody body \\ parameters) \\ [id]
 
-
 freeVarsBody :: Declaration -> [String]
-freeVarsBody Declaration = 
-    case Declaration of
-        Return exp = freeVarsExp exp
-        Statement st = freeVarsStatement st
+freeVarsBody d = 
+    case d of
+        Return exp -> freeVarsExp exp
+        Statement st -> freeVarsStatement st
 
 freeVarsStatement :: Statement -> [String]
 freeVarsStatement Statement =
     case Statement of
-        Assignment id exp = freeVarsExp exp
-        RiutineCallS id exps
-
+        Assignment id exp -> freeVarsExp exp \\ [id]
+        RoutineCallS id [exp] -> concatMap freeVarsExp [exp]
+        WhileLoop exp body -> freeVarsExp exp ++ freeVarsBody body
+        ForLoop id exp1 exp2 body -> ((freeVarsExp exp1) ++ (freeVarsExp exp2) ++ (freeVarsBody body)) \\ [id]
+        IfStatement exp ifbody (Just elsebody) -> freeVarsExp exp ++ freeVarsBody ifbody ++ freeVarsBody elsebody
+        Print [exp] -> concatMap exp
+        RoutineDeclaration def -> freeVarsDef def
 
 
 freeVarsExp :: Exp -> [String]
-freeVarsExp Exp =
-  case Exp of
+freeVarsExp exp =
+  case exp of
     Plus exp term  -> freeVarsExp exp ++ freeVarsTerm term
     Minus exp term -> freeVarsExp exp ++ freeVarsTerm term
     Term term    -> freeVarsTerm term
