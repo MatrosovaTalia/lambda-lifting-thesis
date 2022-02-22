@@ -1,0 +1,41 @@
+Program.  Program ::= [Decl]   ;
+
+RoutineDecl. RoutineDecl  ::=
+  "def" Ident "(" [Ident] ")" ":" "{" [Decl] "}" ;
+
+layout ":" ;
+
+separator Decl ";";
+separator Expr "," ;
+separator Ident "," ;
+
+DeclReturn.     Decl ::= "return" Expr ;
+DeclStatement.  Decl ::= Statement ;
+DeclDef.        Decl ::= RoutineDecl ;
+
+Assign.       Statement ::= Ident "=" Expr ;
+RoutineCall.  Statement ::= Ident "(" [Expr] ")" ;
+WhileLoop.    Statement ::= "while" "(" Expr ")" ":" "{" [Decl] "}" ;
+ForLoop.      Statement ::=
+  "for" "(" Ident "in" "range" "(" Expr "," Expr ")" ")" ":" "{" [Decl] "}" ;
+If.           Statement ::=
+  "if" "(" Expr ")" ":" "{" [Decl] "}" ;
+IfElse.       Statement ::=
+  "if" "(" Expr ")" ":" "{" [Decl] "}" "else" ":" "{" [Decl] "}" ;
+Print.        Statement ::= "print" Expr ;
+
+EInt.   Expr3 ::= Integer ;
+EVar.   Expr3 ::= Ident ;
+ETimes. Expr2 ::= Expr2 "*" Expr3 ;
+EDiv.   Expr2 ::= Expr2 "/" Expr3 ;
+ERem.   Expr2 ::= Expr2 "%" Expr3 ;
+EPlus.  Expr1  ::= Expr1  "+" Expr2 ;
+EMinus. Expr1  ::= Expr1  "-" Expr2 ;
+EAND.   Expr  ::= Expr  "and" Expr1 ;
+EOR.    Expr  ::= Expr  "or"  Expr1 ;
+EXOR.   Expr  ::= Expr  "xor" Expr1 ;
+
+_.      Expr3 ::= "(" Expr ")" ;
+_.      Expr2 ::= Expr3 ;
+_.      Expr1 ::= Expr2 ;
+_.      Expr  ::= Expr1 ;
