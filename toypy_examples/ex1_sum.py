@@ -5,9 +5,8 @@ def sum(n):
     else:
         def sum_2(x):
             return (x + n)
-            end
         return sum_2(sum(n - 1))
-    end
+    
 
 # Step 1: convert free variable to a parameter.
 def sum(n):

@@ -3,7 +3,7 @@ module Main where
 import           Program.Abs
 import           Program.Layout (resolveLayout)
 import           Program.Par    (myLexer, pProgram)
-import           Program.Print  (printTree)
+import           Program.Print  (printTree, Print)
 
 main :: IO ()
 main = do
@@ -39,11 +39,13 @@ transformStatement (ForLoop i from to decls) = ForLoop
   i (transformExpr from) (transformExpr to) (map transformDecl decls)
 transformStatement (RoutineCall f args) = RoutineCall f (reverse args)
 
+
 transformExpr :: Expr -> Expr
 transformExpr expr =
   case expr of
     EInt n     -> expr
     EVar x     -> expr
+    ENot e     -> ENot (transformExpr e)
     EPlus l r  -> EPlus (transformExpr l) (transformExpr r)
     EMinus l r -> EMinus (transformExpr l) (transformExpr r)
     ETimes l r -> ETimes (transformExpr l) (transformExpr r)

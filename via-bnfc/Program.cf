@@ -22,19 +22,21 @@ If.           Statement ::=
   "if" "(" Expr ")" ":" "{" [Decl] "}" ;
 IfElse.       Statement ::=
   "if" "(" Expr ")" ":" "{" [Decl] "}" "else" ":" "{" [Decl] "}" ;
-Print.        Statement ::= "print" Expr ;
+--Print.        Statement ::= "print" Expr ;
 
-EInt.   Expr3 ::= Integer ;
-EVar.   Expr3 ::= Ident ;
-ETimes. Expr2 ::= Expr2 "*" Expr3 ;
-EDiv.   Expr2 ::= Expr2 "/" Expr3 ;
-ERem.   Expr2 ::= Expr2 "%" Expr3 ;
+EInt.   Expr3  ::= Integer ;
+EVar.   Expr3  ::= Ident ;
+ENot.   Expr3  ::= "not" Expr4 ;
+ETimes. Expr2  ::= Expr2 "*" Expr3 ;
+EDiv.   Expr2  ::= Expr2 "/" Expr3 ;
+ERem.   Expr2  ::= Expr2 "%" Expr3 ;
 EPlus.  Expr1  ::= Expr1  "+" Expr2 ;
 EMinus. Expr1  ::= Expr1  "-" Expr2 ;
-EAND.   Expr  ::= Expr  "and" Expr1 ;
-EOR.    Expr  ::= Expr  "or"  Expr1 ;
-EXOR.   Expr  ::= Expr  "xor" Expr1 ;
+EAND.   Expr   ::= Expr  "and" Expr1 ;
+EOR.    Expr   ::= Expr  "or"  Expr1 ;
+EXOR.   Expr   ::= Expr  "xor" Expr1 ;
 
+_.      Expr4 ::= Expr3 ;
 _.      Expr3 ::= "(" Expr ")" ;
 _.      Expr2 ::= Expr3 ;
 _.      Expr1 ::= Expr2 ;

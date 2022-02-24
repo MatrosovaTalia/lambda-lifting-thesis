@@ -10,7 +10,7 @@ def map(fun, sequence):
 # I am not sure about implementing for each loop.
 def map_l(fun, n, sequence):
     result = []
-    for i in range(n):
+    for i in range(0, n):
         result.append(fun(sequence[i]))
         #end
     return result
