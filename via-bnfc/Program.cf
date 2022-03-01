@@ -1,43 +1,55 @@
 Program.  Program ::= [Decl]   ;
 
-RoutineDecl. RoutineDecl  ::=
-  "def" Ident "(" [Ident] ")" ":" "{" [Decl] "}" ;
-
 layout ":" ;
 
 separator Decl ";";
 separator Expr "," ;
 separator Ident "," ;
 
-DeclReturn.     Decl ::= "return" Expr ;
-DeclStatement.  Decl ::= Statement ;
-DeclDef.        Decl ::= RoutineDecl ;
+
+DeclReturn.      Decl ::= "return" Expr ;
+DeclStatement.   Decl ::= Statement ;
+DeclDef.         Decl ::= "def" Ident "(" [Ident] ")" ":" "{" [Decl] "}" ;
 
 Assign.       Statement ::= Ident "=" Expr ;
 RoutineCall.  Statement ::= Ident "(" [Expr] ")" ;
 WhileLoop.    Statement ::= "while" "(" Expr ")" ":" "{" [Decl] "}" ;
 ForLoop.      Statement ::=
-  "for" "(" Ident "in" "range" "(" Expr "," Expr ")" ")" ":" "{" [Decl] "}" ;
-If.           Statement ::=
-  "if" "(" Expr ")" ":" "{" [Decl] "}" ;
+  "for" Ident "in" "range" "(" Expr "," Expr ")" ":" "{" [Decl] "}" ;
+If.           Statement ::= "if" Expr ":" "{" [Decl] "}" ;
 IfElse.       Statement ::=
-  "if" "(" Expr ")" ":" "{" [Decl] "}" "else" ":" "{" [Decl] "}" ;
+ "if" Expr ":" "{" [Decl] "}" ";" "else" ":" "{" [Decl] "}" ;
 --Print.        Statement ::= "print" Expr ;
 
-EInt.   Expr3  ::= Integer ;
-EVar.   Expr3  ::= Ident ;
-ENot.   Expr3  ::= "not" Expr4 ;
-ETimes. Expr2  ::= Expr2 "*" Expr3 ;
-EDiv.   Expr2  ::= Expr2 "/" Expr3 ;
-ERem.   Expr2  ::= Expr2 "%" Expr3 ;
-EPlus.  Expr1  ::= Expr1  "+" Expr2 ;
-EMinus. Expr1  ::= Expr1  "-" Expr2 ;
-EAND.   Expr   ::= Expr  "and" Expr1 ;
-EOR.    Expr   ::= Expr  "or"  Expr1 ;
-EXOR.   Expr   ::= Expr  "xor" Expr1 ;
+EInt.    Expr6  ::= Integer ;
+EVar.    Expr6  ::= Ident ;
+ERCall.  Expr6  ::= Ident "(" [Expr] ")" ;
+ENeg.    Expr5  ::= "-" Expr6 ;
+ENot.    Expr4  ::= "not" Expr5 ;
 
-_.      Expr4 ::= Expr3 ;
-_.      Expr3 ::= "(" Expr ")" ;
+ETimes.  Expr3  ::= Expr3 "*" Expr4 ;
+EDiv.    Expr3  ::= Expr3 "/" Expr4 ;
+ERem.    Expr3  ::= Expr3 "%" Expr4 ;
+
+EPlus.   Expr2  ::= Expr2 "+" Expr3 ;
+EMinus.  Expr2  ::= Expr2 "-" Expr3 ;
+
+EAND.    Expr1  ::= Expr1 "and" Expr2 ;
+EOR.     Expr1  ::= Expr1 "or"  Expr2 ;
+EXOR.    Expr1  ::= Expr1 "xor" Expr2 ;
+
+ELess.   Expr   ::= Expr  "<"   Expr1 ; 
+EGrt.    Expr   ::= Expr  ">"   Expr1 ; 
+EELess.  Expr   ::= Expr  "<="  Expr1 ;
+EEGrt.   Expr   ::= Expr  ">="  Expr1 ;
+EEQUAL.  Expr   ::= Expr  "=="  Expr1 ;
+ENEQUAL. Expr   ::= Expr  "!="  Expr1 ;
+
+
+_.      Expr5 ::= Expr6 ;
+_.      Expr5 ::= "(" Expr ")" ;
+_.      Expr4 ::= Expr5 ;
+_.      Expr3 ::= Expr4 ;
 _.      Expr2 ::= Expr3 ;
 _.      Expr1 ::= Expr2 ;
 _.      Expr  ::= Expr1 ;

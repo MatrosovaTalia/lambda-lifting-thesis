@@ -23,15 +23,11 @@ transProgram :: Program.Abs.Program -> Result
 transProgram x = case x of
   Program.Abs.Program decls -> failure x
 
-transRoutineDecl :: Program.Abs.RoutineDecl -> Result
-transRoutineDecl x = case x of
-  Program.Abs.RoutineDecl ident idents decls -> failure x
-
 transDecl :: Program.Abs.Decl -> Result
 transDecl x = case x of
   Program.Abs.DeclReturn expr -> failure x
   Program.Abs.DeclStatement statement -> failure x
-  Program.Abs.DeclDef routinedecl -> failure x
+  Program.Abs.DeclDef ident idents decls -> failure x
 
 transStatement :: Program.Abs.Statement -> Result
 transStatement x = case x of
@@ -46,6 +42,8 @@ transExpr :: Program.Abs.Expr -> Result
 transExpr x = case x of
   Program.Abs.EInt integer -> failure x
   Program.Abs.EVar ident -> failure x
+  Program.Abs.ERCall ident exprs -> failure x
+  Program.Abs.ENeg expr -> failure x
   Program.Abs.ENot expr -> failure x
   Program.Abs.ETimes expr1 expr2 -> failure x
   Program.Abs.EDiv expr1 expr2 -> failure x
@@ -55,3 +53,9 @@ transExpr x = case x of
   Program.Abs.EAND expr1 expr2 -> failure x
   Program.Abs.EOR expr1 expr2 -> failure x
   Program.Abs.EXOR expr1 expr2 -> failure x
+  Program.Abs.ELess expr1 expr2 -> failure x
+  Program.Abs.EGrt expr1 expr2 -> failure x
+  Program.Abs.EELess expr1 expr2 -> failure x
+  Program.Abs.EEGrt expr1 expr2 -> failure x
+  Program.Abs.EEQUAL expr1 expr2 -> failure x
+  Program.Abs.ENEQUAL expr1 expr2 -> failure x

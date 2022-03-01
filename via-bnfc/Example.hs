@@ -4,10 +4,13 @@ import           Program.Abs
 import           Program.Layout (resolveLayout)
 import           Program.Par    (myLexer, pProgram)
 import           Program.Print  (printTree, Print)
+import           System.IO
+import           Control.Monad
 
 main :: IO ()
-main = do
-  input <- getContents
+main = do 
+  handle <- openFile "isqrt.py" ReadMode 
+  input <- hGetContents handle
   let tokens = resolveLayout True (myLexer input)
   case pProgram tokens of
     Left err -> print err
@@ -24,8 +27,10 @@ transform (Program decls) = Program (map transformDecl decls)
 transformDecl :: Decl -> Decl
 transformDecl (DeclReturn expr) = DeclReturn (transformExpr expr)
 transformDecl (DeclStatement s) = DeclStatement (transformStatement s)
-transformDecl (DeclDef (RoutineDecl f args decls)) = DeclDef
-  (RoutineDecl f (reverse args) (map transformDecl decls))
+transformDecl (DeclDef id ids decls)     = DeclDef id ids decls
+-- transformDecl (DeclDef (RoutineDecl f args decls)) = DeclDef
+
+  -- (RoutineDecl f (reverse args) (map transformDecl decls))
 
 transformStatement :: Statement -> Statement
 transformStatement (Assign x expr) = Assign x (transformExpr expr)
@@ -43,15 +48,18 @@ transformStatement (RoutineCall f args) = RoutineCall f (reverse args)
 transformExpr :: Expr -> Expr
 transformExpr expr =
   case expr of
-    EInt n     -> expr
-    EVar x     -> expr
-    ENot e     -> ENot (transformExpr e)
-    EPlus l r  -> EPlus (transformExpr l) (transformExpr r)
-    EMinus l r -> EMinus (transformExpr l) (transformExpr r)
-    ETimes l r -> ETimes (transformExpr l) (transformExpr r)
-    EDiv l r   -> EDiv (transformExpr l) (transformExpr r)
-    ERem l r   -> ERem (transformExpr l) (transformExpr r)
-    EAND l r   -> EAND (transformExpr l) (transformExpr r)
-    EOR l r    -> EOR (transformExpr l) (transformExpr r)
-    EXOR l r   -> EXOR (transformExpr l) (transformExpr r)
+    EInt n          -> expr
+    EVar x          -> expr
+    ERCall id exprs -> expr
+    ENot e          -> ENot (transformExpr e)
+    EPlus l r       -> EPlus (transformExpr l) (transformExpr r)
+    EMinus l r      -> EMinus (transformExpr l) (transformExpr r)
+    ETimes l r      -> ETimes (transformExpr l) (transformExpr r)
+    EDiv l r        -> EDiv (transformExpr l) (transformExpr r)
+    ERem l r        -> ERem (transformExpr l) (transformExpr r)
+    EAND l r        -> EAND (transformExpr l) (transformExpr r)
+    EOR l r         -> EOR (transformExpr l) (transformExpr r)
+    EXOR l r        -> EXOR (transformExpr l) (transformExpr r)
+    EEQUAL l r      -> EEQUAL (transformExpr l) (transformExpr r)
+    ENEQUAL l r     -> ENEQUAL (transformExpr l) (transformExpr r)
 
