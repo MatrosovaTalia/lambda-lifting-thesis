@@ -8,8 +8,8 @@ import           Data.List       ((\\))
 import           Text.Show
 import           System.IO
 import           Control.Monad
-import Distribution.PackageDescription.Configuration (freeVars)
-import ToypyData (freeVarsStatement)
+
+
 
 main :: IO ()
 main = do 
@@ -26,13 +26,25 @@ main = do
       putStrLn (printTree (freeVars program))
 
 
-freeVars :: Program -> [String]
+freeVars :: Program -> [Ident]
 freeVars (Program decls) = concatMap freeVarsDecl  decls
 
-freeVarsDecl :: Decl -> [String]
+freeVarsDecl :: Decl -> [Ident]
 freeVarsDecl (DeclReturn exp)         = freeVarsExp exp 
 freeVarsDecl (DeclStatement st)       = freeVarsStatement st
-freeVarsDecl (DeclDef id params body) = freeVars
+freeVarsDecl (DeclDef id params body) = (concatMap freeVarsDecl body \\ params) \\ [id]
+
+freeVarsStatement :: Statement -> [Ident]
+transformStatement (Assign x expr) = freeVarsExpr expr // [x]
+transformStatement (If cond tru)
+  = If (transformExpr cond) (map transformDecl tru)
+transformStatement (IfElse cond tru fls)
+  = IfElse (transformExpr cond) (map transformDecl tru) (map transformDecl fls)
+transformStatement (WhileLoop cond decls) = WhileLoop
+  (transformExpr cond) (map transformDecl decls)
+transformStatement (ForLoop i from to decls) = ForLoop
+  i (transformExpr from) (transformExpr to) (map transformDecl decls)
+transformStatement (RoutineCall f args) = RoutineCall f (reverse args)
 
 
 transform :: Program -> Program
@@ -47,16 +59,7 @@ transformDecl (DeclDef id ids decls)     = DeclDef id ids decls
   -- (RoutineDecl f (reverse args) (map transformDecl decls))
 
 transformStatement :: Statement -> Statement
-transformStatement (Assign x expr) = Assign x (transformExpr expr)
-transformStatement (If cond tru)
-  = If (transformExpr cond) (map transformDecl tru)
-transformStatement (IfElse cond tru fls)
-  = IfElse (transformExpr cond) (map transformDecl tru) (map transformDecl fls)
-transformStatement (WhileLoop cond decls) = WhileLoop
-  (transformExpr cond) (map transformDecl decls)
-transformStatement (ForLoop i from to decls) = ForLoop
-  i (transformExpr from) (transformExpr to) (map transformDecl decls)
-transformStatement (RoutineCall f args) = RoutineCall f (reverse args)
+
 
 
 transformExpr :: Expr -> Expr
