@@ -30,39 +30,25 @@ freeVars :: Program -> [Ident]
 freeVars (Program decls) = concatMap freeVarsDecl  decls
 
 freeVarsDecl :: Decl -> [Ident]
-freeVarsDecl (DeclReturn exp)         = freeVarsExp exp 
+freeVarsDecl (DeclReturn exp)         = freeVarsExpr exp 
 freeVarsDecl (DeclStatement st)       = freeVarsStatement st
 freeVarsDecl (DeclDef id params body) = (concatMap freeVarsDecl body \\ params) \\ [id]
 
 freeVarsStatement :: Statement -> [Ident]
 transformStatement (Assign x expr) = freeVarsExpr expr // [x]
-transformStatement (If cond tru)
-  = If (transformExpr cond) (map transformDecl tru)
-transformStatement (IfElse cond tru fls)
-  = IfElse (transformExpr cond) (map transformDecl tru) (map transformDecl fls)
-transformStatement (WhileLoop cond decls) = WhileLoop
-  (transformExpr cond) (map transformDecl decls)
+transformStatement (If cond tru) = 
+                    freeVarsExpr cond ++ concatMap freeVarsDecl tru
+transformStatement (IfElse cond tru fls) = 
+                    freeVarsExpr cond ++ concatMap freeVarsDecl tru ++ concatMap freeVarsDecl fls
+transformStatement (WhileLoop cond decls) = 
+                    freeVarsExpr cond ++ concatMap freeVarsDecl decls
 transformStatement (ForLoop i from to decls) = ForLoop
   i (transformExpr from) (transformExpr to) (map transformDecl decls)
 transformStatement (RoutineCall f args) = RoutineCall f (reverse args)
 
 
-transform :: Program -> Program
-transform (Program decls) = Program (map transformDecl decls)
 
-transformDecl :: Decl -> Decl
-transformDecl (DeclReturn expr) = DeclReturn (transformExpr expr)
-transformDecl (DeclStatement s) = DeclStatement (transformStatement s)
-transformDecl (DeclDef id ids decls)     = DeclDef id ids decls
--- transformDecl (DeclDef (RoutineDecl f args decls)) = DeclDef
-
-  -- (RoutineDecl f (reverse args) (map transformDecl decls))
-
-transformStatement :: Statement -> Statement
-
-
-
-transformExpr :: Expr -> Expr
+freeVarsExpr :: Expr -> Expr
 transformExpr expr =
   case expr of
     EInt n          -> expr
