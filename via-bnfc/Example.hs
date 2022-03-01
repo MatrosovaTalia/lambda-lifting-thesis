@@ -4,8 +4,12 @@ import           Program.Abs
 import           Program.Layout (resolveLayout)
 import           Program.Par    (myLexer, pProgram)
 import           Program.Print  (printTree, Print)
+import           Data.List       ((\\))
+import           Text.Show
 import           System.IO
 import           Control.Monad
+import Distribution.PackageDescription.Configuration (freeVars)
+import ToypyData (freeVarsStatement)
 
 main :: IO ()
 main = do 
@@ -19,7 +23,17 @@ main = do
       putStrLn (printTree program)
       putStrLn "=============================="
       putStrLn "After:"
-      putStrLn (printTree (transform program))
+      putStrLn (printTree (freeVars program))
+
+
+freeVars :: Program -> [String]
+freeVars (Program decls) = concatMap freeVarsDecl  decls
+
+freeVarsDecl :: Decl -> [String]
+freeVarsDecl (DeclReturn exp)         = freeVarsExp exp 
+freeVarsDecl (DeclStatement st)       = freeVarsStatement st
+freeVarsDecl (DeclDef id params body) = freeVars
+
 
 transform :: Program -> Program
 transform (Program decls) = Program (map transformDecl decls)
