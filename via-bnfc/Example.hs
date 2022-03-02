@@ -13,7 +13,7 @@ import           Control.Monad
 
 main :: IO ()
 main = do 
-  handle <- openFile "sum_after.py" ReadMode 
+  handle <- openFile "sum.py" ReadMode 
   input <- hGetContents handle
   let tokens = resolveLayout True (myLexer input)
   case pProgram tokens of
