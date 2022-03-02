@@ -49,6 +49,9 @@ All other symbols are terminals.
   | //[Decl]// | -> | **eps**
   |  |  **|**  | //Decl//
   |  |  **|**  | //Decl// ``;`` //[Decl]//
+  | //[Statement]// | -> | **eps**
+  |  |  **|**  | //Statement//
+  |  |  **|**  | //Statement// ``;`` //[Statement]//
   | //[Expr]// | -> | **eps**
   |  |  **|**  | //Expr//
   |  |  **|**  | //Expr// ``,`` //[Expr]//

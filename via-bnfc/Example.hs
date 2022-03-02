@@ -13,7 +13,7 @@ import           Control.Monad
 
 main :: IO ()
 main = do 
-  handle <- openFile "isqrt.py" ReadMode 
+  handle <- openFile "sum_after.py" ReadMode 
   input <- hGetContents handle
   let tokens = resolveLayout True (myLexer input)
   case pProgram tokens of
@@ -35,34 +35,38 @@ freeVarsDecl (DeclStatement st)       = freeVarsStatement st
 freeVarsDecl (DeclDef id params body) = (concatMap freeVarsDecl body \\ params) \\ [id]
 
 freeVarsStatement :: Statement -> [Ident]
-transformStatement (Assign x expr) = freeVarsExpr expr // [x]
-transformStatement (If cond tru) = 
+freeVarsStatement (Assign x expr) = freeVarsExpr expr \\ [x]
+freeVarsStatement (If cond tru) = 
                     freeVarsExpr cond ++ concatMap freeVarsDecl tru
-transformStatement (IfElse cond tru fls) = 
+freeVarsStatement (IfElse cond tru fls) = 
                     freeVarsExpr cond ++ concatMap freeVarsDecl tru ++ concatMap freeVarsDecl fls
-transformStatement (WhileLoop cond decls) = 
+freeVarsStatement (WhileLoop cond decls) = 
                     freeVarsExpr cond ++ concatMap freeVarsDecl decls
-transformStatement (ForLoop i from to decls) = ForLoop
-  i (transformExpr from) (transformExpr to) (map transformDecl decls)
-transformStatement (RoutineCall f args) = RoutineCall f (reverse args)
+freeVarsStatement (ForLoop i from to decls) = 
+                    (freeVarsExpr from ++ freeVarsExpr to ++ concatMap freeVarsDecl decls) \\ [i]
+freeVarsStatement (RoutineCall f args) = f : concatMap freeVarsExpr args
 
 
 
-freeVarsExpr :: Expr -> Expr
-transformExpr expr =
+freeVarsExpr :: Expr -> [Ident]
+freeVarsExpr expr =
   case expr of
-    EInt n          -> expr
-    EVar x          -> expr
-    ERCall id exprs -> expr
-    ENot e          -> ENot (transformExpr e)
-    EPlus l r       -> EPlus (transformExpr l) (transformExpr r)
-    EMinus l r      -> EMinus (transformExpr l) (transformExpr r)
-    ETimes l r      -> ETimes (transformExpr l) (transformExpr r)
-    EDiv l r        -> EDiv (transformExpr l) (transformExpr r)
-    ERem l r        -> ERem (transformExpr l) (transformExpr r)
-    EAND l r        -> EAND (transformExpr l) (transformExpr r)
-    EOR l r         -> EOR (transformExpr l) (transformExpr r)
-    EXOR l r        -> EXOR (transformExpr l) (transformExpr r)
-    EEQUAL l r      -> EEQUAL (transformExpr l) (transformExpr r)
-    ENEQUAL l r     -> ENEQUAL (transformExpr l) (transformExpr r)
-
+    EInt _          -> []
+    EVar x          -> [x]
+    ERCall id exprs -> id : concatMap freeVarsExpr exprs 
+    ENot expr       -> freeVarsExpr expr
+    ENeg expr       -> freeVarsExpr expr
+    EPlus l r       -> freeVarsExpr l ++ freeVarsExpr r
+    EMinus l r      -> freeVarsExpr l ++ freeVarsExpr r
+    ETimes l r      -> freeVarsExpr l ++ freeVarsExpr r
+    EDiv l r        -> freeVarsExpr l ++ freeVarsExpr r
+    ERem l r        -> freeVarsExpr l ++ freeVarsExpr r
+    EAND l r        -> freeVarsExpr l ++ freeVarsExpr r
+    EOR l r         -> freeVarsExpr l ++ freeVarsExpr r
+    EXOR l r        -> freeVarsExpr l ++ freeVarsExpr r
+    EEQUAL l r      -> freeVarsExpr l ++ freeVarsExpr r
+    ENEQUAL l r     -> freeVarsExpr l ++ freeVarsExpr r
+    ELess l r       -> freeVarsExpr l ++ freeVarsExpr r
+    EGrt l r        -> freeVarsExpr l ++ freeVarsExpr r
+    EELess l r      -> freeVarsExpr l ++ freeVarsExpr r
+    EEGrt l r       -> freeVarsExpr l ++ freeVarsExpr r

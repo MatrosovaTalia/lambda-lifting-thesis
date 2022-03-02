@@ -4,6 +4,7 @@ layout ":" ;
 
 
 separator Decl ";";
+separator Statement ";" ;
 separator Expr "," ;
 separator Ident "," ;
 

@@ -47,8 +47,10 @@ All other symbols are terminals.
 
   | //Program// | -> | //[Decl]//
   | //[Decl]// | -> | **eps**
-  |  |  **|**  | //Decl//
   |  |  **|**  | //Decl// ``;`` //[Decl]//
+  | //[Statement]// | -> | **eps**
+  |  |  **|**  | //Statement//
+  |  |  **|**  | //Statement// ``;`` //[Statement]//
   | //[Expr]// | -> | **eps**
   |  |  **|**  | //Expr//
   |  |  **|**  | //Expr// ``,`` //[Expr]//
@@ -69,13 +71,13 @@ All other symbols are terminals.
   |  |  **|**  | //Ident// ``(`` //[Expr]// ``)``
   | //Expr5// | -> | ``-`` //Expr6//
   |  |  **|**  | //Expr6//
+  |  |  **|**  | ``(`` //Expr// ``)``
   | //Expr4// | -> | ``not`` //Expr5//
   |  |  **|**  | //Expr5//
   | //Expr3// | -> | //Expr3// ``*`` //Expr4//
   |  |  **|**  | //Expr3// ``/`` //Expr4//
   |  |  **|**  | //Expr3// ``%`` //Expr4//
   |  |  **|**  | //Expr4//
-  |  |  **|**  | ``(`` //Expr// ``)``
   | //Expr2// | -> | //Expr2// ``+`` //Expr3//
   |  |  **|**  | //Expr2// ``-`` //Expr3//
   |  |  **|**  | //Expr3//

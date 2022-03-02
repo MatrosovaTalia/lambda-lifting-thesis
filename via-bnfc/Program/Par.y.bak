@@ -10,6 +10,7 @@ module Program.Par
   , myLexer
   , pProgram
   , pListDecl
+  , pListStatement
   , pListExpr
   , pListIdent
   , pDecl
@@ -32,6 +33,7 @@ import Program.Lex
 
 %name pProgram Program
 %name pListDecl ListDecl
+%name pListStatement ListStatement
 %name pListExpr ListExpr
 %name pListIdent ListIdent
 %name pDecl Decl
@@ -93,10 +95,13 @@ Program :: { Program.Abs.Program }
 Program : ListDecl { Program.Abs.Program $1 }
 
 ListDecl :: { [Program.Abs.Decl] }
-ListDecl
+ListDecl : {- empty -} { [] } | Decl ';' ListDecl { (:) $1 $3 }
+
+ListStatement :: { [Program.Abs.Statement] }
+ListStatement
   : {- empty -} { [] }
-  | Decl { (:[]) $1 }
-  | Decl ';' ListDecl { (:) $1 $3 }
+  | Statement { (:[]) $1 }
+  | Statement ';' ListStatement { (:) $1 $3 }
 
 ListExpr :: { [Program.Abs.Expr] }
 ListExpr
@@ -132,7 +137,10 @@ Expr6
   | Ident '(' ListExpr ')' { Program.Abs.ERCall $1 $3 }
 
 Expr5 :: { Program.Abs.Expr }
-Expr5 : '-' Expr6 { Program.Abs.ENeg $2 } | Expr6 { $1 }
+Expr5
+  : '-' Expr6 { Program.Abs.ENeg $2 }
+  | Expr6 { $1 }
+  | '(' Expr ')' { $2 }
 
 Expr4 :: { Program.Abs.Expr }
 Expr4 : 'not' Expr5 { Program.Abs.ENot $2 } | Expr5 { $1 }
@@ -143,7 +151,6 @@ Expr3
   | Expr3 '/' Expr4 { Program.Abs.EDiv $1 $3 }
   | Expr3 '%' Expr4 { Program.Abs.ERem $1 $3 }
   | Expr4 { $1 }
-  | '(' Expr ')' { $2 }
 
 Expr2 :: { Program.Abs.Expr }
 Expr2

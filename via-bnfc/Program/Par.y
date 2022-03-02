@@ -10,6 +10,7 @@ module Program.Par
   , myLexer
   , pProgram
   , pListDecl
+  , pListStatement
   , pListExpr
   , pListIdent
   , pDecl
@@ -32,6 +33,7 @@ import Program.Lex
 
 %name pProgram Program
 %name pListDecl ListDecl
+%name pListStatement ListStatement
 %name pListExpr ListExpr
 %name pListIdent ListIdent
 %name pDecl Decl
@@ -97,6 +99,12 @@ ListDecl
   : {- empty -} { [] }
   | Decl { (:[]) $1 }
   | Decl ';' ListDecl { (:) $1 $3 }
+
+ListStatement :: { [Program.Abs.Statement] }
+ListStatement
+  : {- empty -} { [] }
+  | Statement { (:[]) $1 }
+  | Statement ';' ListStatement { (:) $1 $3 }
 
 ListExpr :: { [Program.Abs.Expr] }
 ListExpr

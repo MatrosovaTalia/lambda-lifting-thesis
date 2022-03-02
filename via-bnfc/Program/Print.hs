@@ -149,6 +149,11 @@ instance Print [Program.Abs.Decl] where
   prt _ [x] = concatD [prt 0 x]
   prt _ (x:xs) = concatD [prt 0 x, doc (showString ";"), prt 0 xs]
 
+instance Print [Program.Abs.Statement] where
+  prt _ [] = concatD []
+  prt _ [x] = concatD [prt 0 x]
+  prt _ (x:xs) = concatD [prt 0 x, doc (showString ";"), prt 0 xs]
+
 instance Print [Program.Abs.Expr] where
   prt _ [] = concatD []
   prt _ [x] = concatD [prt 0 x]
