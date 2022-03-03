@@ -23,11 +23,15 @@ transProgram :: Program.Abs.Program -> Result
 transProgram x = case x of
   Program.Abs.Program decls -> failure x
 
+transRoutineDecl :: Program.Abs.RoutineDecl -> Result
+transRoutineDecl x = case x of
+  Program.Abs.RoutineDecl ident idents decls -> failure x
+
 transDecl :: Program.Abs.Decl -> Result
 transDecl x = case x of
   Program.Abs.DeclReturn expr -> failure x
   Program.Abs.DeclStatement statement -> failure x
-  Program.Abs.DeclDef ident idents decls -> failure x
+  Program.Abs.DeclDef routinedecl -> failure x
 
 transStatement :: Program.Abs.Statement -> Result
 transStatement x = case x of

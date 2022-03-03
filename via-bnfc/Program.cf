@@ -8,11 +8,12 @@ separator Statement ";" ;
 separator Expr "," ;
 separator Ident "," ;
 
-
+RoutineDecl. RoutineDecl  ::=
+  "def" Ident "(" [Ident] ")" ":" "{" [Decl] "}" ;
 
 DeclReturn.      Decl ::= "return" Expr ;
 DeclStatement.   Decl ::= Statement ;
-DeclDef.         Decl ::= "def" Ident "(" [Ident] ")" ":" "{" [Decl] "}" ;
+DeclDef.         Decl ::= RoutineDecl ;
 
 Assign.       Statement ::= Ident "=" Expr ;
 RoutineCall.  Statement ::= Ident "(" [Expr] ")" ;

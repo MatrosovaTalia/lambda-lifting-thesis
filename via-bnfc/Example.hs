@@ -4,11 +4,14 @@ import           Program.Abs
 import           Program.Layout (resolveLayout)
 import           Program.Par    (myLexer, pProgram)
 import           Program.Print  (printTree, Print)
-import           Data.List       ((\\))
+import           Data.List      ((\\), isPrefixOf, elemIndices)
+-- import           Data.String
+import           Data.Maybe     (listToMaybe)
 import           Text.Show
 import           System.IO
 import           Control.Monad
-import           Data.Map
+import Text.XHtml (body)
+-- import           Data.Map
 
 
 
@@ -24,56 +27,81 @@ main = do
       putStrLn (printTree program)
       putStrLn "=============================="
       putStrLn "After:"
-      putStrLn (printTree (getFreeVars program))
+      putStrLn (printTree (freeVars program))
 
 
-getFreeVars :: Program -> [(Ident, [Ident])]
-getFreeVars (Program decls) = concatMap getFreeVarsDecl  decls
+freeVars :: Program -> [Ident]
+freeVars (Program decls) = concatMap freeVarsDecl  decls
 
-freeVarsDef :: Decl -> [(Ident, [Ident])]
-freeVarsDef (DeclDef id params body) = [(id, concatMap  (t a)]
 
-getFreeVarsDecl :: Decl -> [Ident]
-getFreeVarsDecl (DeclReturn exp)         = getFreeVarsExpr exp 
-getFreeVarsDecl (DeclStatement st)       = getFreeVarsStatement st
-getFreeVarsDecl (DeclDef id params body) = (concatMap getFreeVarsDecl body \\ params) \\ [id]
+freeVarsDecl :: Decl -> [Ident]
+freeVarsDecl (DeclReturn exp)         = freeVarsExpr exp 
+freeVarsDecl (DeclStatement st)       = freeVarsStatement st
+freeVarsDecl (DeclDef (RoutineDecl id params body)) = (concatMap freeVarsDecl body \\ params) \\ [id]
 
-getFreeVarsStatement :: Statement -> [Ident]
-getFreeVarsStatement (Assign x expr) = getFreeVarsExpr expr \\ [x]
-getFreeVarsStatement (If cond tru) = 
-                    getFreeVarsExpr cond ++ concatMap getFreeVarsDecl tru
-getFreeVarsStatement (IfElse cond tru fls) = 
-                    getFreeVarsExpr cond ++ concatMap getFreeVarsDecl tru ++ concatMap getFreeVarsDecl fls
-getFreeVarsStatement (WhileLoop cond decls) = 
-                    getFreeVarsExpr cond ++ concatMap getFreeVarsDecl decls
-getFreeVarsStatement (ForLoop i from to decls) = 
-                    (getFreeVarsExpr from ++ getFreeVarsExpr to ++ concatMap getFreeVarsDecl decls) \\ [i]
-getFreeVarsStatement (RoutineCall f args) = f : concatMap getFreeVarsExpr args
+freeVarsDef :: RoutineDecl  -> [(Ident, [Ident])]
+freeVarsDef (RoutineDecl id params body) = [(id, bodyFreeVars \\ params)]
+  where 
+    bodyFreeVars = concatMap freeVarsDecl body
 
 
 
-getFreeVarsExpr :: Expr -> [Ident]
-getFreeVarsExpr expr =
+freeVarsStatement :: Statement -> [Ident]
+freeVarsStatement (Assign x expr) = freeVarsExpr expr \\ [x]
+freeVarsStatement (If cond tru) = 
+                    freeVarsExpr cond ++ concatMap freeVarsDecl tru
+freeVarsStatement (IfElse cond tru fls) = 
+                    freeVarsExpr cond ++ concatMap freeVarsDecl tru ++ concatMap freeVarsDecl fls
+freeVarsStatement (WhileLoop cond decls) = 
+                    freeVarsExpr cond ++ concatMap freeVarsDecl decls
+freeVarsStatement (ForLoop i from to decls) = 
+                    (freeVarsExpr from ++ freeVarsExpr to ++ concatMap freeVarsDecl decls) \\ [i]
+freeVarsStatement (RoutineCall f args) = f : concatMap freeVarsExpr args
+
+
+
+freeVarsExpr :: Expr -> [Ident]
+freeVarsExpr expr =
   case expr of
     EInt _          -> []
     EVar x          -> [x]
-    ERCall id exprs -> id : concatMap getFreeVarsExpr exprs 
-    ENot expr       -> getFreeVarsExpr expr
-    ENeg expr       -> getFreeVarsExpr expr
-    EPlus l r       -> getFreeVarsExpr l ++ getFreeVarsExpr r
-    EMinus l r      -> getFreeVarsExpr l ++ getFreeVarsExpr r
-    ETimes l r      -> getFreeVarsExpr l ++ getFreeVarsExpr r
-    EDiv l r        -> getFreeVarsExpr l ++ getFreeVarsExpr r
-    ERem l r        -> getFreeVarsExpr l ++ getFreeVarsExpr r
-    EAND l r        -> getFreeVarsExpr l ++ getFreeVarsExpr r
-    EOR l r         -> getFreeVarsExpr l ++ getFreeVarsExpr r
-    EXOR l r        -> getFreeVarsExpr l ++ getFreeVarsExpr r
-    EEQUAL l r      -> getFreeVarsExpr l ++ getFreeVarsExpr r
-    ENEQUAL l r     -> getFreeVarsExpr l ++ getFreeVarsExpr r
-    ELess l r       -> getFreeVarsExpr l ++ getFreeVarsExpr r
-    EGrt l r        -> getFreeVarsExpr l ++ getFreeVarsExpr r
-    EELess l r      -> getFreeVarsExpr l ++ getFreeVarsExpr r
-    EEGrt l r       -> getFreeVarsExpr l ++ getFreeVarsExpr r
+    ERCall id exprs -> id : concatMap freeVarsExpr exprs 
+    ENot expr       -> freeVarsExpr expr
+    ENeg expr       -> freeVarsExpr expr
+    EPlus l r       -> freeVarsExpr l ++ freeVarsExpr r
+    EMinus l r      -> freeVarsExpr l ++ freeVarsExpr r
+    ETimes l r      -> freeVarsExpr l ++ freeVarsExpr r
+    EDiv l r        -> freeVarsExpr l ++ freeVarsExpr r
+    ERem l r        -> freeVarsExpr l ++ freeVarsExpr r
+    EAND l r        -> freeVarsExpr l ++ freeVarsExpr r
+    EOR l r         -> freeVarsExpr l ++ freeVarsExpr r
+    EXOR l r        -> freeVarsExpr l ++ freeVarsExpr r
+    EEQUAL l r      -> freeVarsExpr l ++ freeVarsExpr r
+    ENEQUAL l r     -> freeVarsExpr l ++ freeVarsExpr r
+    ELess l r       -> freeVarsExpr l ++ freeVarsExpr r
+    EGrt l r        -> freeVarsExpr l ++ freeVarsExpr r
+    EELess l r      -> freeVarsExpr l ++ freeVarsExpr r
+    EEGrt l r       -> freeVarsExpr l ++ freeVarsExpr r
 
 
--- liftFreeVars :: []
+-- Найти все свободные переменные для каждой функции
+-- -- (предполагаем, что все идентификаторы уникальные)
+-- stage1 :: Program -> [(Ident, [Ident])]
+
+-- -- Для каждой фукнции, добавить свободные переменные в список формальных аргументов
+-- stage2 :: Program -> Program
+
+-- -- Для каждого вызова функции, добавить свободные переменные в список аргументов
+-- stage3 :: [(Ident, [Ident])] -> Program -> Program
+
+-- -- Вытащить все локальные определения функций
+-- stage3 :: Program -> [(Ident, [Ident], [Statement])]
+
+-- -- Удалить все локальные определения функций
+-- stage4 :: Program -> Program
+
+-- -- Перевести все локальные определения в программу с глобально определёнными фукнциями
+-- stage5 :: [(Ident, [Ident], [Statement])] -> Program
+
+-- -- Конкатенация программ
+-- stage6 :: Program -> Program -> Program

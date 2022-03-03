@@ -6,6 +6,7 @@ def sum(n):
             
     else:
         def sum_2(x):
+            c = sum(1, 2)
             return (x + n)
         
         return sum_2(sum(n - 1))

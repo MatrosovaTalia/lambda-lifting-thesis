@@ -13,10 +13,11 @@ import qualified Data.String
 data Program = Program [Decl]
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
+data RoutineDecl = RoutineDecl Ident [Expr] [Decl]
+  deriving (C.Eq, C.Ord, C.Show, C.Read)
+
 data Decl
-    = DeclReturn Expr
-    | DeclStatement Statement
-    | DeclDef Ident [Ident] [Decl]
+    = DeclReturn Expr | DeclStatement Statement | DeclDef RoutineDecl
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Statement
@@ -32,6 +33,7 @@ data Expr
     = EInt Integer
     | EVar Ident
     | ERCall Ident [Expr]
+    | ENeg Expr
     | ENot Expr
     | ETimes Expr Expr
     | EDiv Expr Expr
