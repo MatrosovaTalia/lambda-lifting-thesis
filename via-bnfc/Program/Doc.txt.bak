@@ -58,8 +58,9 @@ All other symbols are terminals.
   | //[Ident]// | -> | **eps**
   |  |  **|**  | //Ident//
   |  |  **|**  | //Ident// ``,`` //[Ident]//
-  | //RoutineDecl// | -> | ``def`` //Ident// ``(`` //[Expr]// ``)`` ``:`` ``{`` //[Decl]// ``}``
-  | //Decl// | -> | ``return`` //Expr//
+  | //ReturnSt// | -> | ``return`` //Expr//
+  | //RoutineDecl// | -> | ``def`` //Ident// ``(`` //[Ident]// ``)`` ``:`` ``{`` //[Decl]// ``}``
+  | //Decl// | -> | //ReturnSt//
   |  |  **|**  | //Statement//
   |  |  **|**  | //RoutineDecl//
   | //Statement// | -> | //Ident// ``=`` //Expr//

@@ -13,11 +13,16 @@ import qualified Data.String
 data Program = Program [Decl]
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
-data RoutineDecl = RoutineDecl Ident [Expr] [Decl]
+data ReturnSt = ReturnSt Expr
+  deriving (C.Eq, C.Ord, C.Show, C.Read)
+
+data RoutineDecl = RoutineDecl Ident [Ident] [Decl]
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Decl
-    = DeclReturn Expr | DeclStatement Statement | DeclDef RoutineDecl
+    = DeclReturn ReturnSt
+    | DeclStatement Statement
+    | DeclDef RoutineDecl
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Statement

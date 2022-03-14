@@ -1,12 +1,8 @@
-def sum(n):
-    if n == 1:
-        for i in range(0, 10):
-            a = 1 + 2 
-            b = 1 + 6 
-            
-    else:
-        def sum_2(x):
-            c = sum(1, 2)
-            return (x + n)
-        
-        return sum_2(sum(n - 1))
+def sum(x, y):
+    def sum_2(z):
+        s = 0
+        for i in range(x, z + 1):
+            s = s + 1
+    def bad(x):
+        sum_2(0)
+    return bad(3)
