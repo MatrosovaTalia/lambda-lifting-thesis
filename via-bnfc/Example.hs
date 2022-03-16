@@ -4,7 +4,7 @@ import           Program.Abs
 import           Program.Layout (resolveLayout)
 import           Program.Par    (myLexer, pProgram)
 import           Program.Print  (printTree, Print)
-import           Data.List      ((\\), isPrefixOf, elemIndices)
+import           Data.List      ((\\), isPrefixOf, elemIndices, partition, nub)
 -- import           Data.String
 import           Data.Maybe     (listToMaybe)
 import           Text.Show
@@ -19,7 +19,7 @@ import Control.Monad.State (State)
 
 main :: IO ()
 main = do 
-  handle <- openFile "sum.py" ReadMode 
+  handle <- openFile "tests/sum.py" ReadMode 
   input <- hGetContents handle
   let tokens = resolveLayout True (myLexer input)
   case pProgram tokens of
@@ -32,8 +32,10 @@ main = do
       putStrLn (printTree (freeVars program))
       putStrLn "freeAndDeclared:"
       print (freeAndDeclared program)
+      putStrLn "Rename all bound variables:"
+      putStrLn (printTree (renameProgram program))
       putStrLn "Update Routine Decl:"
-      putStrLn (printTree (addParams program))
+      putStrLn (printTree (addParams (renameProgram program)))
 
 data FreeAndDeclared = FreeAndDeclared
   { freeIdents     :: [Ident]
@@ -206,6 +208,109 @@ addParamsDecl (DeclReturn ret)   = DeclReturn ret
 addParamsDecl (DeclStatement st) = DeclStatement st
 addParamsDecl (DeclDef def)      = DeclDef (addParamsDef def)
 
+renameProgram :: Program -> Program
+renameProgram (Program decls) = Program (renameBlock emptyContext decls)
+
+emptyContext :: Context
+emptyContext = Context [] []
+
+data Context = Context
+  { outerIdents :: [Ident]
+  , renamings   :: [(Ident, Ident)]
+  } deriving (Show)
+
+updateContext :: Context -> [Ident] -> Context
+updateContext (Context outer oldRenames) inner = Context (claimedNames <> renamedIdents) (oldRenames <> newRenames)
+  where
+    (conflicts, newIdents) = partition (`elem` outer) (nub inner)
+    claimedNames = outer <> newIdents
+    renamedIdents = renameIdents claimedNames conflicts
+    newRenames = zip conflicts renamedIdents
+
+renameIdents :: [Ident] -> [Ident] -> [Ident]
+renameIdents claimed [] = []
+renameIdents claimed (x:xs) = y : renameIdents (y : claimed) xs
+  where
+    y = renameIdent claimed x
+
+renameIdent :: [Ident] -> Ident -> Ident
+renameIdent claimed (Ident x) = go 1
+  where
+    go n
+      | y `notElem` claimed = y
+      | otherwise = go (n + 1)
+      where
+        y = Ident (x ++ "_" ++ show n)
+
+renameBlock :: Context -> [Decl] -> [Decl]
+renameBlock context decls = map (renameDecl newContext) decls
+  where
+    newContext = updateContext context (map fst inner)
+    FreeAndDeclared _fs inner = foldMap freeAndDeclaredDecl decls
+
+renameDecl :: Context -> Decl -> Decl
+renameDecl ctx (DeclReturn ret)   = DeclReturn (renameExpr ctx ret)
+renameDecl ctx (DeclStatement st) = DeclStatement (renameStatement ctx st)
+renameDecl ctx (DeclDef def)      = DeclDef (renameDef ctx def)
+
+renameStatement :: Context -> Statement -> Statement
+renameStatement context st =
+  case st of
+    Assign x expr -> Assign (rename x) (renameExpr context expr)
+    If cond tru -> If (renameExpr context cond) (renameBlock context tru)
+    IfElse cond tru fls -> IfElse (renameExpr context cond) (renameBlock context tru) (renameBlock context fls)
+    WhileLoop cond decls -> WhileLoop (renameExpr context cond) (renameBlock context decls)
+    ForLoop i from to decls ->
+      let newContext = updateContext context [i]
+       in ForLoop (renameWith newContext i) (renameExpr context from) (renameExpr context to) (renameBlock newContext decls)
+    RoutineCall f args -> RoutineCall (rename f) (map (renameExpr context) args)
+  where
+    rename = renameWith context
+
+renameWith :: Context -> Ident -> Ident
+renameWith context x = 
+  case lookup x (renamings context) of
+          Just y -> y
+          Nothing -> x
+
+renameExpr :: Context -> Expr -> Expr
+renameExpr context expr = 
+  case expr of
+    EInt{}        -> expr
+    EVar x -> EVar (rename x)
+    ERCall id exprs -> ERCall (rename id) (map (renameExpr context) exprs)
+    ENot expr       -> ENot (renameExpr context expr)
+    ENeg expr       -> ENeg (renameExpr context expr)
+    EPlus l r       -> EPlus (renameExpr context l) (renameExpr context r)
+    EMinus l r      -> EMinus (renameExpr context l) (renameExpr context r)
+    ETimes l r      -> ETimes (renameExpr context l) (renameExpr context r)
+    EDiv l r        -> EDiv (renameExpr context l) (renameExpr context r)
+    ERem l r        -> ERem (renameExpr context l) (renameExpr context r)
+    EAND l r        -> EAND (renameExpr context l) (renameExpr context r)
+    EOR l r         -> EOR (renameExpr context l) (renameExpr context r)
+    EXOR l r        -> EXOR (renameExpr context l) (renameExpr context r)
+    EEQUAL l r      -> EEQUAL (renameExpr context l) (renameExpr context r)
+    ENEQUAL l r     -> ENEQUAL (renameExpr context l) (renameExpr context r)
+    ELess l r       -> ELess (renameExpr context l) (renameExpr context r)
+    EGrt l r        -> EGrt (renameExpr context l) (renameExpr context r)
+    EELess l r      -> EELess (renameExpr context l) (renameExpr context r)
+    EEGrt l r       -> EEGrt (renameExpr context l) (renameExpr context r)
+    where
+      rename = renameWith context
+
+renameDef :: Context -> RoutineDecl -> RoutineDecl
+renameDef context@(Context outer renames) def@(RoutineDecl id params body) = 
+  case lookup id renames of
+    Just newId -> RoutineDecl newId newParams (renameBlock newContext body)
+    Nothing    -> RoutineDecl id    newParams (renameBlock newContext body)
+
+  where
+    newContext = updateContext context params
+    newParams = map renameParam params
+    renameParam x =
+      case lookup x (renamings newContext) of
+        Just y  -> y
+        Nothing -> x
 
 -- Stage 3 
 -- addParamsCall ::  -> DeclStatement 
