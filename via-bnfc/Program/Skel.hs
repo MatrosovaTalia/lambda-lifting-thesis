@@ -19,9 +19,9 @@ transIdent :: Program.Abs.Ident -> Result
 transIdent x = case x of
   Program.Abs.Ident string -> failure x
 
-transProgram :: Program.Abs.Program -> Result
-transProgram x = case x of
-  Program.Abs.Program decls -> failure x
+transAst :: Program.Abs.Ast -> Result
+transAst x = case x of
+  Program.Abs.Ast decls -> failure x
 
 transRoutineDecl :: Program.Abs.RoutineDecl -> Result
 transRoutineDecl x = case x of

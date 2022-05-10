@@ -4,10 +4,10 @@
 
 import GHC.Generics (Generic)
 import Data.Array.Accelerate (Elt)
-import           Program.Abs
-import           Program.Layout (resolveLayout)
-import           Program.Par    (myLexer, pProgram)
-import           Program.Print  (printTree, Print)
+import           Ast.Abs
+import           Ast.Layout (resolveLayout)
+import           Ast.Par    (myLexer, pProgram)
+import           Ast.Print  (printTree, Print)
 import           Data.List      ((\\), isPrefixOf, elemIndices, partition, nub)
 
 data NodeType
@@ -37,11 +37,6 @@ data NodeType
     deriving (Show, Eq, Generic, Elt)
 
 
--- Добавить в текст:
--- Node type с Node value, а не как у Аарона: у него отдельный массив.
--- Блоки и scopes в рекурсивной и параллельной реализации: сперва все переменные ищутся во внешнем блоке,
--- добавляются в текущий скоуп, а потом из блока вызываются дальнейшие функции.
-
 data Entry = Entry {
     entryDepth          :: Int,
     entryLevel          :: Int,
@@ -66,7 +61,8 @@ blockToEntry context@Context{..} decls = concatMap (declToEntry newContext) decl
 
 declToEntry :: Context -> Decl -> [Entry]
 declToEntry context@Context{..} = \case
-  ...
+  DeclStatement st -> stToEntry st
+  DeclReturn    expr -> exprToEntry expr
   DeclDef (RoutineDecl f params body) ->
     let newContext = context
           { contextDepth = contextDepth + 1
@@ -81,6 +77,32 @@ declToEntry context@Context{..} = \case
         entryDeBruijnIndex = Nothing,
         entryNodeType = ty
     }
+  
+stToEntry :: Context -> Statement -> [Entry]
+stToEntry context@Context{..} = \case
+  Assign id expr            -> mkNode (NodeAssign (findVarInScopes id contextScopes)) : goExpr expr : [] --new var old scope
+  WhileLoop expr decls     -> mkNode NodeWhileLoop : goExpr expr : map goExpr decls
+  ForLoop id expr1 expr2 decls ->
+    let newContext = context
+          { contextDepth = contextDepth + 1
+          , contextLevel = contextLevel + 1
+          , contextScopes = [id] : contextScopes
+          }
+     in mkNode NodeForLoop : goExpr expr1 : goExpr expr2 : map (stToEntry newContext) decls
+  If expr decls            -> mkNode NodeIf : goExpr expr : map goExpr decls
+  IfElse expr declsThen declsElse -> mkNode NodeIf : goExpr expr : map goExpr (declsThen ++ declsElse)
+  RoutineCall id exprs     -> mkNode (NodeRoutineCall (findVarInScopes id contextScopes)) : map goExpr exprs
+
+  where
+    goExpr = exprToEntry context { contextDepth = contextDepth + 1 }
+
+    mkNode ty value = Entry {
+        entryDepth = contextDepth,
+        entryLevel = contextLevel,
+        entryDeBruijnIndex = Nothing,
+        entryNodeType = ty
+    }
+  
 
 exprToEntry :: Context -> Expr -> [Entry]
 exprToEntry context@Context{..} = \case
@@ -89,8 +111,23 @@ exprToEntry context@Context{..} = \case
       case findVarInScopes x contextScopes of
           Nothing       -> error "undefined variable"
           Just (s, i)   -> Just (s, i)
-  ETimes e1 e2 -> mkNode NodeTimes : (go e1 ++ go e2)
-  ...
+  ETimes  e1 e2  -> mkNode NodeTimes : (go e1 ++ go e2)
+  EDiv    e1 e2  -> mkNode NodeDiv : (go e1 ++ go e2)
+  ERem    e1 e2  -> mkNode NodeRem : (go e1 ++ go e2)
+  EPlus   e1 e2  -> mkNode NodePlus : (go e1 ++ go e2)
+  EMinus  e1 e2  -> mkNode NodeMinus : (go e1 ++ go e2)
+  EAND    e1 e2  -> mkNode NodeAnd : (go e1 ++ go e2)
+  EOR     e1 e2  -> mkNode NodeOr : (go e1 ++ go e2)
+  EXOR    e1 e2  -> mkNode NodeXor : (go e1 ++ go e2)
+  ELess   e1 e2  -> mkNode NodeLess : (go e1 ++ go e2)
+  EGrt    e1 e2  -> mkNode NodeGrt : (go e1 ++ go e2)
+  EELess  e1 e2  -> mkNode NodeELess : (go e1 ++ go e2)
+  EEGrt   e1 e2  -> mkNode NodeEGrt : (go e1 ++ go e2)
+  EEQUAL  e1 e2  -> mkNode NodeEQUAL : (go e1 ++ go e2)
+  ENEQUAL e1 e2  -> mkNode NodeNEQUAL : (go e1 ++ go e2)
+  ERCall  id [e] -> mkNode NodeRCall : (go e1 ++ go e2)
+  ENeg    e      -> mkNode NodeNeg : (go e)
+  ENot    e      -> mkNode NodeNot        : (go e)
   where
     go = exprToEntry context { contextDepth = contextDepth + 1 }
 
@@ -110,3 +147,8 @@ findVarInScopes x (scope:scopes) =
                 Nothing -> Nothing
                 Just (s, i) -> Just (s + 1, i)
         Just i -> Just (0, i)
+
+
+
+
+

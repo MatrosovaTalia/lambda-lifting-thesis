@@ -2,9 +2,9 @@
 
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
--- | The abstract syntax of language Program.
+-- | The abstract syntax of language Ast.
 
-module Program.Abs where
+module Ast.Abs where
 
 import Prelude (Integer, String)
 import qualified Prelude as C (Eq, Ord, Show, Read)
@@ -32,9 +32,6 @@ data Statement
 data Expr
     = EInt Integer
     | EVar Ident
-    | ERCall Ident [Expr]
-    | ENeg Expr
-    | ENot Expr
     | ETimes Expr Expr
     | EDiv Expr Expr
     | ERem Expr Expr
@@ -49,6 +46,9 @@ data Expr
     | EEGrt Expr Expr
     | EEQUAL Expr Expr
     | ENEQUAL Expr Expr
+    | ERCall Ident [Expr]
+    | ENeg Expr
+    | ENot Expr
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 newtype Ident = Ident String

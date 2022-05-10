@@ -45,7 +45,7 @@ The symbols -> (production),  **|**  (union)
 and **eps** (empty rule) belong to the BNF notation.
 All other symbols are terminals.
 
-  | //Program// | -> | //[Decl]//
+  | //Ast// | -> | //[Decl]//
   | //[Decl]// | -> | **eps**
   |  |  **|**  | //Decl//
   |  |  **|**  | //Decl// ``;`` //[Decl]//

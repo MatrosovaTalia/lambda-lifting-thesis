@@ -1,9 +1,9 @@
 module Main where
 
-import           Program.Abs
-import           Program.Layout (resolveLayout)
-import           Program.Par    (myLexer, pProgram)
-import           Program.Print  (printTree, Print)
+import           Ast.Abs
+import           Ast.Layout (resolveLayout)
+import           Ast.Par    (myLexer, pAst)
+import           Ast.Print  (printTree, Print)
 import           Data.List      ((\\), isPrefixOf, elemIndices, partition, nub)
 -- import           Data.String
 import           Data.Maybe     (listToMaybe)
@@ -22,20 +22,20 @@ main = do
   handle <- openFile "tests/sum.py" ReadMode 
   input <- hGetContents handle
   let tokens = resolveLayout True (myLexer input)
-  case pProgram tokens of
+  case pAst tokens of
     Left err -> print err
-    Right program -> do
+    Right Ast -> do
       putStrLn "Before:"
-      putStrLn (printTree program)
+      putStrLn (printTree Ast)
       putStrLn "=============================="
       putStrLn "freeVars:"
-      putStrLn (printTree (freeVars program))
+      putStrLn (printTree (freeVars Ast))
       putStrLn "freeAndDeclared:"
-      print (freeAndDeclared program)
+      print (freeAndDeclared Ast)
       putStrLn "Rename all bound variables:"
-      putStrLn (printTree (renameProgram program))
+      putStrLn (printTree (renameAst Ast))
       putStrLn "Update Routine Decl:"
-      putStrLn (printTree (addParams (renameProgram program)))
+      putStrLn (printTree (addParams (renameAst Ast)))
 
 data FreeAndDeclared = FreeAndDeclared
   { freeIdents     :: [Ident]
@@ -49,8 +49,8 @@ instance Semigroup FreeAndDeclared where
 instance Monoid FreeAndDeclared where
   mempty = FreeAndDeclared [] [] 
 
-freeAndDeclared :: Program -> FreeAndDeclared
-freeAndDeclared (Program decls) = foldMap freeAndDeclaredDecl decls
+freeAndDeclared :: Ast -> FreeAndDeclared
+freeAndDeclared (Ast decls) = foldMap freeAndDeclaredDecl decls
 
 freeAndDeclaredDecl :: Decl -> FreeAndDeclared
 freeAndDeclaredDecl (DeclReturn exp) = freeAndDeclaredExpr exp
@@ -86,8 +86,8 @@ freeAndDeclaredDef (RoutineDecl f params body) = FreeAndDeclared xs [(f, xs)]
     FreeAndDeclared fs _ds = freeAndDeclaredBlock body
 
 -- Stage1
-freeVars :: Program -> [[Ident]]
-freeVars (Program decls) = map freeVarsDecl decls
+freeVars :: Ast -> [[Ident]]
+freeVars (Ast decls) = map freeVarsDecl decls
 
 
 freeVarsDef :: RoutineDecl  -> [Ident]
@@ -140,8 +140,8 @@ freeVarsExpr expr =
 
 
 -- Stage 2
-addParams :: Program -> Program
-addParams (Program decls) = Program (addParamsBlockWith [] decls)
+addParams :: Ast -> Ast
+addParams (Ast decls) = Ast (addParamsBlockWith [] decls)
 
 addParamsBlockWith :: [(Ident, [Ident])] -> [Decl] -> [Decl]
 addParamsBlockWith outerDefs decls = map (addParamsDeclWith (innerDefs <> outerDefs)) decls
@@ -208,8 +208,8 @@ addParamsDecl (DeclReturn ret)   = DeclReturn ret
 addParamsDecl (DeclStatement st) = DeclStatement st
 addParamsDecl (DeclDef def)      = DeclDef (addParamsDef def)
 
-renameProgram :: Program -> Program
-renameProgram (Program decls) = Program (renameBlock emptyContext decls)
+renameAst :: Ast -> Ast
+renameAst (Ast decls) = Ast (renameBlock emptyContext decls)
 
 emptyContext :: Context
 emptyContext = Context [] []
@@ -320,27 +320,27 @@ renameDef context@(Context outer renames) def@(RoutineDecl id params body) =
 
 -- Найти все свободные переменные для каждой функции
 -- -- (предполагаем, что все идентификаторы уникальные)
--- stage1 :: Program -> [Ident]
--- stage1 program = freeVars program
+-- stage1 :: Ast -> [Ident]
+-- stage1 Ast = freeVars Ast
 
 -- -- Для каждой фукнции, добавить свободные переменные в список формальных аргументов
--- stage2 :: Program -> Program
--- stage2 program = addParams 
+-- stage2 :: Ast -> Ast
+-- stage2 Ast = addParams 
 
 -- -- Для каждого вызова функции, добавить свободные переменные в список аргументов
--- stage3 :: [(Ident, [Ident])] -> Program -> Program
+-- stage3 :: [(Ident, [Ident])] -> Ast -> Ast
 
 -- -- Вытащить все локальные определения функций
--- stage3 :: Program -> [(Ident, [Ident], [Statement])]
+-- stage3 :: Ast -> [(Ident, [Ident], [Statement])]
 
 -- -- Удалить все локальные определения функций
--- stage4 :: Program -> Program
+-- stage4 :: Ast -> Ast
 
 -- -- Перевести все локальные определения в программу с глобально определёнными фукнциями
--- stage5 :: [(Ident, [Ident], [Statement])] -> Program
+-- stage5 :: [(Ident, [Ident], [Statement])] -> Ast
 
 -- -- Конкатенация программ
--- stage6 :: Program -> Program -> Program
+-- stage6 :: Ast -> Ast -> Ast
  --
 
 -- ????

@@ -7,9 +7,9 @@
 {-# LANGUAGE OverlappingInstances #-}
 #endif
 
--- | Pretty-printer for Program.
+-- | Pretty-printer for Ast.
 
-module Program.Print where
+module Ast.Print where
 
 import Prelude
   ( ($), (.)
@@ -20,7 +20,7 @@ import Prelude
   , all, elem, foldr, id, map, null, replicate, shows, span
   )
 import Data.Char ( Char, isSpace )
-import qualified Program.Abs
+import qualified Ast.Abs
 
 -- | The top-level printing method.
 
@@ -138,69 +138,69 @@ instance Print Integer where
 instance Print Double where
   prt _ x = doc (shows x)
 
-instance Print Program.Abs.Ident where
-  prt _ (Program.Abs.Ident i) = doc $ showString i
-instance Print Program.Abs.Program where
+instance Print Ast.Abs.Ident where
+  prt _ (Ast.Abs.Ident i) = doc $ showString i
+instance Print Ast.Abs.Ast where
   prt i = \case
-    Program.Abs.Program decls -> prPrec i 0 (concatD [prt 0 decls])
+    Ast.Abs.Ast decls -> prPrec i 0 (concatD [prt 0 decls])
 
-instance Print [Program.Abs.Decl] where
+instance Print [Ast.Abs.Decl] where
   prt _ [] = concatD []
   prt _ [x] = concatD [prt 0 x]
   prt _ (x:xs) = concatD [prt 0 x, doc (showString ";"), prt 0 xs]
 
-instance Print [Program.Abs.Statement] where
+instance Print [Ast.Abs.Statement] where
   prt _ [] = concatD []
   prt _ [x] = concatD [prt 0 x]
   prt _ (x:xs) = concatD [prt 0 x, doc (showString ";"), prt 0 xs]
 
-instance Print [Program.Abs.Expr] where
+instance Print [Ast.Abs.Expr] where
   prt _ [] = concatD []
   prt _ [x] = concatD [prt 0 x]
   prt _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
 
-instance Print [Program.Abs.Ident] where
+instance Print [Ast.Abs.Ident] where
   prt _ [] = concatD []
   prt _ [x] = concatD [prt 0 x]
   prt _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
 
-instance Print Program.Abs.RoutineDecl where
+instance Print Ast.Abs.RoutineDecl where
   prt i = \case
-    Program.Abs.RoutineDecl id_ ids decls -> prPrec i 0 (concatD [doc (showString "def"), prt 0 id_, doc (showString "("), prt 0 ids, doc (showString ")"), doc (showString ":"), doc (showString "{"), prt 0 decls, doc (showString "}")])
+    Ast.Abs.RoutineDecl id_ ids decls -> prPrec i 0 (concatD [doc (showString "def"), prt 0 id_, doc (showString "("), prt 0 ids, doc (showString ")"), doc (showString ":"), doc (showString "{"), prt 0 decls, doc (showString "}")])
 
-instance Print Program.Abs.Decl where
+instance Print Ast.Abs.Decl where
   prt i = \case
-    Program.Abs.DeclReturn expr -> prPrec i 0 (concatD [doc (showString "return"), prt 0 expr])
-    Program.Abs.DeclStatement statement -> prPrec i 0 (concatD [prt 0 statement])
-    Program.Abs.DeclDef routinedecl -> prPrec i 0 (concatD [prt 0 routinedecl])
+    Ast.Abs.DeclReturn expr -> prPrec i 0 (concatD [doc (showString "return"), prt 0 expr])
+    Ast.Abs.DeclStatement statement -> prPrec i 0 (concatD [prt 0 statement])
+    Ast.Abs.DeclDef routinedecl -> prPrec i 0 (concatD [prt 0 routinedecl])
 
-instance Print Program.Abs.Statement where
+instance Print Ast.Abs.Statement where
   prt i = \case
-    Program.Abs.Assign id_ expr -> prPrec i 0 (concatD [prt 0 id_, doc (showString "="), prt 0 expr])
-    Program.Abs.RoutineCall id_ exprs -> prPrec i 0 (concatD [prt 0 id_, doc (showString "("), prt 0 exprs, doc (showString ")")])
-    Program.Abs.WhileLoop expr decls -> prPrec i 0 (concatD [doc (showString "while"), doc (showString "("), prt 0 expr, doc (showString ")"), doc (showString ":"), doc (showString "{"), prt 0 decls, doc (showString "}")])
-    Program.Abs.ForLoop id_ expr1 expr2 decls -> prPrec i 0 (concatD [doc (showString "for"), prt 0 id_, doc (showString "in"), doc (showString "range"), doc (showString "("), prt 0 expr1, doc (showString ","), prt 0 expr2, doc (showString ")"), doc (showString ":"), doc (showString "{"), prt 0 decls, doc (showString "}")])
-    Program.Abs.If expr decls -> prPrec i 0 (concatD [doc (showString "if"), prt 0 expr, doc (showString ":"), doc (showString "{"), prt 0 decls, doc (showString "}")])
-    Program.Abs.IfElse expr decls1 decls2 -> prPrec i 0 (concatD [doc (showString "if"), prt 0 expr, doc (showString ":"), doc (showString "{"), prt 0 decls1, doc (showString "}"), doc (showString ";"), doc (showString "else"), doc (showString ":"), doc (showString "{"), prt 0 decls2, doc (showString "}")])
+    Ast.Abs.Assign id_ expr -> prPrec i 0 (concatD [prt 0 id_, doc (showString "="), prt 0 expr])
+    Ast.Abs.RoutineCall id_ exprs -> prPrec i 0 (concatD [prt 0 id_, doc (showString "("), prt 0 exprs, doc (showString ")")])
+    Ast.Abs.WhileLoop expr decls -> prPrec i 0 (concatD [doc (showString "while"), doc (showString "("), prt 0 expr, doc (showString ")"), doc (showString ":"), doc (showString "{"), prt 0 decls, doc (showString "}")])
+    Ast.Abs.ForLoop id_ expr1 expr2 decls -> prPrec i 0 (concatD [doc (showString "for"), prt 0 id_, doc (showString "in"), doc (showString "range"), doc (showString "("), prt 0 expr1, doc (showString ","), prt 0 expr2, doc (showString ")"), doc (showString ":"), doc (showString "{"), prt 0 decls, doc (showString "}")])
+    Ast.Abs.If expr decls -> prPrec i 0 (concatD [doc (showString "if"), prt 0 expr, doc (showString ":"), doc (showString "{"), prt 0 decls, doc (showString "}")])
+    Ast.Abs.IfElse expr decls1 decls2 -> prPrec i 0 (concatD [doc (showString "if"), prt 0 expr, doc (showString ":"), doc (showString "{"), prt 0 decls1, doc (showString "}"), doc (showString ";"), doc (showString "else"), doc (showString ":"), doc (showString "{"), prt 0 decls2, doc (showString "}")])
 
-instance Print Program.Abs.Expr where
+instance Print Ast.Abs.Expr where
   prt i = \case
-    Program.Abs.EInt n -> prPrec i 6 (concatD [prt 0 n])
-    Program.Abs.EVar id_ -> prPrec i 6 (concatD [prt 0 id_])
-    Program.Abs.ERCall id_ exprs -> prPrec i 6 (concatD [prt 0 id_, doc (showString "("), prt 0 exprs, doc (showString ")")])
-    Program.Abs.ENeg expr -> prPrec i 5 (concatD [doc (showString "-"), prt 6 expr])
-    Program.Abs.ENot expr -> prPrec i 4 (concatD [doc (showString "not"), prt 5 expr])
-    Program.Abs.ETimes expr1 expr2 -> prPrec i 3 (concatD [prt 3 expr1, doc (showString "*"), prt 4 expr2])
-    Program.Abs.EDiv expr1 expr2 -> prPrec i 3 (concatD [prt 3 expr1, doc (showString "/"), prt 4 expr2])
-    Program.Abs.ERem expr1 expr2 -> prPrec i 3 (concatD [prt 3 expr1, doc (showString "%"), prt 4 expr2])
-    Program.Abs.EPlus expr1 expr2 -> prPrec i 2 (concatD [prt 2 expr1, doc (showString "+"), prt 3 expr2])
-    Program.Abs.EMinus expr1 expr2 -> prPrec i 2 (concatD [prt 2 expr1, doc (showString "-"), prt 3 expr2])
-    Program.Abs.EAND expr1 expr2 -> prPrec i 1 (concatD [prt 1 expr1, doc (showString "and"), prt 2 expr2])
-    Program.Abs.EOR expr1 expr2 -> prPrec i 1 (concatD [prt 1 expr1, doc (showString "or"), prt 2 expr2])
-    Program.Abs.EXOR expr1 expr2 -> prPrec i 1 (concatD [prt 1 expr1, doc (showString "xor"), prt 2 expr2])
-    Program.Abs.ELess expr1 expr2 -> prPrec i 0 (concatD [prt 0 expr1, doc (showString "<"), prt 1 expr2])
-    Program.Abs.EGrt expr1 expr2 -> prPrec i 0 (concatD [prt 0 expr1, doc (showString ">"), prt 1 expr2])
-    Program.Abs.EELess expr1 expr2 -> prPrec i 0 (concatD [prt 0 expr1, doc (showString "<="), prt 1 expr2])
-    Program.Abs.EEGrt expr1 expr2 -> prPrec i 0 (concatD [prt 0 expr1, doc (showString ">="), prt 1 expr2])
-    Program.Abs.EEQUAL expr1 expr2 -> prPrec i 0 (concatD [prt 0 expr1, doc (showString "=="), prt 1 expr2])
-    Program.Abs.ENEQUAL expr1 expr2 -> prPrec i 0 (concatD [prt 0 expr1, doc (showString "!="), prt 1 expr2])
+    Ast.Abs.EInt n -> prPrec i 6 (concatD [prt 0 n])
+    Ast.Abs.EVar id_ -> prPrec i 6 (concatD [prt 0 id_])
+    Ast.Abs.ERCall id_ exprs -> prPrec i 6 (concatD [prt 0 id_, doc (showString "("), prt 0 exprs, doc (showString ")")])
+    Ast.Abs.ENeg expr -> prPrec i 5 (concatD [doc (showString "-"), prt 6 expr])
+    Ast.Abs.ENot expr -> prPrec i 4 (concatD [doc (showString "not"), prt 5 expr])
+    Ast.Abs.ETimes expr1 expr2 -> prPrec i 3 (concatD [prt 3 expr1, doc (showString "*"), prt 4 expr2])
+    Ast.Abs.EDiv expr1 expr2 -> prPrec i 3 (concatD [prt 3 expr1, doc (showString "/"), prt 4 expr2])
+    Ast.Abs.ERem expr1 expr2 -> prPrec i 3 (concatD [prt 3 expr1, doc (showString "%"), prt 4 expr2])
+    Ast.Abs.EPlus expr1 expr2 -> prPrec i 2 (concatD [prt 2 expr1, doc (showString "+"), prt 3 expr2])
+    Ast.Abs.EMinus expr1 expr2 -> prPrec i 2 (concatD [prt 2 expr1, doc (showString "-"), prt 3 expr2])
+    Ast.Abs.EAND expr1 expr2 -> prPrec i 1 (concatD [prt 1 expr1, doc (showString "and"), prt 2 expr2])
+    Ast.Abs.EOR expr1 expr2 -> prPrec i 1 (concatD [prt 1 expr1, doc (showString "or"), prt 2 expr2])
+    Ast.Abs.EXOR expr1 expr2 -> prPrec i 1 (concatD [prt 1 expr1, doc (showString "xor"), prt 2 expr2])
+    Ast.Abs.ELess expr1 expr2 -> prPrec i 0 (concatD [prt 0 expr1, doc (showString "<"), prt 1 expr2])
+    Ast.Abs.EGrt expr1 expr2 -> prPrec i 0 (concatD [prt 0 expr1, doc (showString ">"), prt 1 expr2])
+    Ast.Abs.EELess expr1 expr2 -> prPrec i 0 (concatD [prt 0 expr1, doc (showString "<="), prt 1 expr2])
+    Ast.Abs.EEGrt expr1 expr2 -> prPrec i 0 (concatD [prt 0 expr1, doc (showString ">="), prt 1 expr2])
+    Ast.Abs.EEQUAL expr1 expr2 -> prPrec i 0 (concatD [prt 0 expr1, doc (showString "=="), prt 1 expr2])
+    Ast.Abs.ENEQUAL expr1 expr2 -> prPrec i 0 (concatD [prt 0 expr1, doc (showString "!="), prt 1 expr2])

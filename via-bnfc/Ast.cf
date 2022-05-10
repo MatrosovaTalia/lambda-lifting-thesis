@@ -1,7 +1,6 @@
-Program.  Program ::= [Decl]   ;
+Ast.  Ast ::= [Decl]   ;
 
 layout ":" ;
-
 
 separator Decl ";";
 separator Statement ";" ;

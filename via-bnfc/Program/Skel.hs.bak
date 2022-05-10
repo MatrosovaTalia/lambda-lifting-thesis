@@ -23,17 +23,13 @@ transProgram :: Program.Abs.Program -> Result
 transProgram x = case x of
   Program.Abs.Program decls -> failure x
 
-transReturnSt :: Program.Abs.ReturnSt -> Result
-transReturnSt x = case x of
-  Program.Abs.ReturnSt expr -> failure x
-
 transRoutineDecl :: Program.Abs.RoutineDecl -> Result
 transRoutineDecl x = case x of
   Program.Abs.RoutineDecl ident idents decls -> failure x
 
 transDecl :: Program.Abs.Decl -> Result
 transDecl x = case x of
-  Program.Abs.DeclReturn returnst -> failure x
+  Program.Abs.DeclReturn expr -> failure x
   Program.Abs.DeclStatement statement -> failure x
   Program.Abs.DeclDef routinedecl -> failure x
 

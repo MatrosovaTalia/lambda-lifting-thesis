@@ -5,7 +5,7 @@
 {-# OPTIONS_GHC -fno-warn-incomplete-patterns -fno-warn-overlapping-patterns #-}
 {-# LANGUAGE PatternSynonyms #-}
 
-module Program.Par
+module Ast.Par
   ( happyError
   , myLexer
   , pAst
@@ -27,8 +27,8 @@ module Program.Par
 
 import Prelude
 
-import qualified Program.Abs
-import Program.Lex
+import qualified Ast.Abs
+import Ast.Lex
 
 }
 
@@ -87,101 +87,101 @@ import Program.Lex
 
 %%
 
-Ident :: { Program.Abs.Ident }
-Ident  : L_Ident { Program.Abs.Ident $1 }
+Ident :: { Ast.Abs.Ident }
+Ident  : L_Ident { Ast.Abs.Ident $1 }
 
 Integer :: { Integer }
 Integer  : L_integ  { (read $1) :: Integer }
 
-Ast :: { Program.Abs.Ast }
-Ast : ListDecl { Program.Abs.Ast $1 }
+Ast :: { Ast.Abs.Ast }
+Ast : ListDecl { Ast.Abs.Ast $1 }
 
-ListDecl :: { [Program.Abs.Decl] }
+ListDecl :: { [Ast.Abs.Decl] }
 ListDecl
   : {- empty -} { [] }
   | Decl { (:[]) $1 }
   | Decl ';' ListDecl { (:) $1 $3 }
 
-ListStatement :: { [Program.Abs.Statement] }
+ListStatement :: { [Ast.Abs.Statement] }
 ListStatement
   : {- empty -} { [] }
   | Statement { (:[]) $1 }
   | Statement ';' ListStatement { (:) $1 $3 }
 
-ListExpr :: { [Program.Abs.Expr] }
+ListExpr :: { [Ast.Abs.Expr] }
 ListExpr
   : {- empty -} { [] }
   | Expr { (:[]) $1 }
   | Expr ',' ListExpr { (:) $1 $3 }
 
-ListIdent :: { [Program.Abs.Ident] }
+ListIdent :: { [Ast.Abs.Ident] }
 ListIdent
   : {- empty -} { [] }
   | Ident { (:[]) $1 }
   | Ident ',' ListIdent { (:) $1 $3 }
 
-RoutineDecl :: { Program.Abs.RoutineDecl }
+RoutineDecl :: { Ast.Abs.RoutineDecl }
 RoutineDecl
-  : 'def' Ident '(' ListIdent ')' ':' '{' ListDecl '}' { Program.Abs.RoutineDecl $2 $4 $8 }
+  : 'def' Ident '(' ListIdent ')' ':' '{' ListDecl '}' { Ast.Abs.RoutineDecl $2 $4 $8 }
 
-Decl :: { Program.Abs.Decl }
+Decl :: { Ast.Abs.Decl }
 Decl
-  : 'return' Expr { Program.Abs.DeclReturn $2 }
-  | Statement { Program.Abs.DeclStatement $1 }
-  | RoutineDecl { Program.Abs.DeclDef $1 }
+  : 'return' Expr { Ast.Abs.DeclReturn $2 }
+  | Statement { Ast.Abs.DeclStatement $1 }
+  | RoutineDecl { Ast.Abs.DeclDef $1 }
 
-Statement :: { Program.Abs.Statement }
+Statement :: { Ast.Abs.Statement }
 Statement
-  : Ident '=' Expr { Program.Abs.Assign $1 $3 }
-  | Ident '(' ListExpr ')' { Program.Abs.RoutineCall $1 $3 }
-  | 'while' '(' Expr ')' ':' '{' ListDecl '}' { Program.Abs.WhileLoop $3 $7 }
-  | 'for' Ident 'in' 'range' '(' Expr ',' Expr ')' ':' '{' ListDecl '}' { Program.Abs.ForLoop $2 $6 $8 $12 }
-  | 'if' Expr ':' '{' ListDecl '}' { Program.Abs.If $2 $5 }
-  | 'if' Expr ':' '{' ListDecl '}' ';' 'else' ':' '{' ListDecl '}' { Program.Abs.IfElse $2 $5 $11 }
+  : Ident '=' Expr { Ast.Abs.Assign $1 $3 }
+  | Ident '(' ListExpr ')' { Ast.Abs.RoutineCall $1 $3 }
+  | 'while' '(' Expr ')' ':' '{' ListDecl '}' { Ast.Abs.WhileLoop $3 $7 }
+  | 'for' Ident 'in' 'range' '(' Expr ',' Expr ')' ':' '{' ListDecl '}' { Ast.Abs.ForLoop $2 $6 $8 $12 }
+  | 'if' Expr ':' '{' ListDecl '}' { Ast.Abs.If $2 $5 }
+  | 'if' Expr ':' '{' ListDecl '}' ';' 'else' ':' '{' ListDecl '}' { Ast.Abs.IfElse $2 $5 $11 }
 
-Expr6 :: { Program.Abs.Expr }
+Expr6 :: { Ast.Abs.Expr }
 Expr6
-  : Integer { Program.Abs.EInt $1 }
-  | Ident { Program.Abs.EVar $1 }
-  | Ident '(' ListExpr ')' { Program.Abs.ERCall $1 $3 }
+  : Integer { Ast.Abs.EInt $1 }
+  | Ident { Ast.Abs.EVar $1 }
+  | Ident '(' ListExpr ')' { Ast.Abs.ERCall $1 $3 }
 
-Expr5 :: { Program.Abs.Expr }
+Expr5 :: { Ast.Abs.Expr }
 Expr5
-  : '-' Expr6 { Program.Abs.ENeg $2 }
+  : '-' Expr6 { Ast.Abs.ENeg $2 }
   | Expr6 { $1 }
   | '(' Expr ')' { $2 }
 
-Expr4 :: { Program.Abs.Expr }
-Expr4 : 'not' Expr5 { Program.Abs.ENot $2 } | Expr5 { $1 }
+Expr4 :: { Ast.Abs.Expr }
+Expr4 : 'not' Expr5 { Ast.Abs.ENot $2 } | Expr5 { $1 }
 
-Expr3 :: { Program.Abs.Expr }
+Expr3 :: { Ast.Abs.Expr }
 Expr3
-  : Expr3 '*' Expr4 { Program.Abs.ETimes $1 $3 }
-  | Expr3 '/' Expr4 { Program.Abs.EDiv $1 $3 }
-  | Expr3 '%' Expr4 { Program.Abs.ERem $1 $3 }
+  : Expr3 '*' Expr4 { Ast.Abs.ETimes $1 $3 }
+  | Expr3 '/' Expr4 { Ast.Abs.EDiv $1 $3 }
+  | Expr3 '%' Expr4 { Ast.Abs.ERem $1 $3 }
   | Expr4 { $1 }
 
-Expr2 :: { Program.Abs.Expr }
+Expr2 :: { Ast.Abs.Expr }
 Expr2
-  : Expr2 '+' Expr3 { Program.Abs.EPlus $1 $3 }
-  | Expr2 '-' Expr3 { Program.Abs.EMinus $1 $3 }
+  : Expr2 '+' Expr3 { Ast.Abs.EPlus $1 $3 }
+  | Expr2 '-' Expr3 { Ast.Abs.EMinus $1 $3 }
   | Expr3 { $1 }
 
-Expr1 :: { Program.Abs.Expr }
+Expr1 :: { Ast.Abs.Expr }
 Expr1
-  : Expr1 'and' Expr2 { Program.Abs.EAND $1 $3 }
-  | Expr1 'or' Expr2 { Program.Abs.EOR $1 $3 }
-  | Expr1 'xor' Expr2 { Program.Abs.EXOR $1 $3 }
+  : Expr1 'and' Expr2 { Ast.Abs.EAND $1 $3 }
+  | Expr1 'or' Expr2 { Ast.Abs.EOR $1 $3 }
+  | Expr1 'xor' Expr2 { Ast.Abs.EXOR $1 $3 }
   | Expr2 { $1 }
 
-Expr :: { Program.Abs.Expr }
+Expr :: { Ast.Abs.Expr }
 Expr
-  : Expr '<' Expr1 { Program.Abs.ELess $1 $3 }
-  | Expr '>' Expr1 { Program.Abs.EGrt $1 $3 }
-  | Expr '<=' Expr1 { Program.Abs.EELess $1 $3 }
-  | Expr '>=' Expr1 { Program.Abs.EEGrt $1 $3 }
-  | Expr '==' Expr1 { Program.Abs.EEQUAL $1 $3 }
-  | Expr '!=' Expr1 { Program.Abs.ENEQUAL $1 $3 }
+  : Expr '<' Expr1 { Ast.Abs.ELess $1 $3 }
+  | Expr '>' Expr1 { Ast.Abs.EGrt $1 $3 }
+  | Expr '<=' Expr1 { Ast.Abs.EELess $1 $3 }
+  | Expr '>=' Expr1 { Ast.Abs.EEGrt $1 $3 }
+  | Expr '==' Expr1 { Ast.Abs.EEQUAL $1 $3 }
+  | Expr '!=' Expr1 { Ast.Abs.ENEQUAL $1 $3 }
   | Expr1 { $1 }
 
 {

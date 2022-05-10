@@ -19,12 +19,12 @@ import System.Environment ( getArgs )
 import System.Exit        ( exitFailure )
 import Control.Monad      ( when )
 
-import Program.Abs    ()
-import Program.Layout ( resolveLayout )
-import Program.Lex    ( Token, mkPosToken )
-import Program.Par    ( pAst, myLexer )
-import Program.Print  ( Print, printTree )
-import Program.Skel   ()
+import Ast.Abs    ()
+import Ast.Layout ( resolveLayout )
+import Ast.Lex    ( Token, mkPosToken )
+import Ast.Par    ( pAst, myLexer )
+import Ast.Print  ( Print, printTree )
+import Ast.Skel   ()
 
 type Err        = Either String
 type ParseFun a = [Token] -> Err a

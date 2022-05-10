@@ -140,9 +140,9 @@ instance Print Double where
 
 instance Print Program.Abs.Ident where
   prt _ (Program.Abs.Ident i) = doc $ showString i
-instance Print Program.Abs.Program where
+instance Print Program.Abs.Ast where
   prt i = \case
-    Program.Abs.Program decls -> prPrec i 0 (concatD [prt 0 decls])
+    Program.Abs.Ast decls -> prPrec i 0 (concatD [prt 0 decls])
 
 instance Print [Program.Abs.Decl] where
   prt _ [] = concatD []

@@ -14,12 +14,12 @@ ALEX_OPTS  = --ghc
 
 # Default goal.
 
-all : Program/Test
+all : Ast/Test
 
 # Rules for building the parser.
 
-Program/Abs.hs Program/Layout.hs Program/Lex.x Program/Par.y Program/Print.hs Program/Test.hs : Program.cf
-	bnfc --haskell -d Program.cf
+Ast/Abs.hs Ast/Layout.hs Ast/Lex.x Ast/Par.y Ast/Print.hs Ast/Test.hs : Ast.cf
+	bnfc --haskell -d Ast.cf
 
 %.hs : %.y
 	${HAPPY} ${HAPPY_OPTS} $<
@@ -27,16 +27,16 @@ Program/Abs.hs Program/Layout.hs Program/Lex.x Program/Par.y Program/Print.hs Pr
 %.hs : %.x
 	${ALEX} ${ALEX_OPTS} $<
 
-Program/Test : Program/Abs.hs Program/Layout.hs Program/Lex.hs Program/Par.hs Program/Print.hs Program/Test.hs
+Ast/Test : Ast/Abs.hs Ast/Layout.hs Ast/Lex.hs Ast/Par.hs Ast/Print.hs Ast/Test.hs
 	${GHC} ${GHC_OPTS} $@
 
 # Rules for cleaning generated files.
 
 clean :
-	-rm -f Program/*.hi Program/*.o Program/*.log Program/*.aux Program/*.dvi
+	-rm -f Ast/*.hi Ast/*.o Ast/*.log Ast/*.aux Ast/*.dvi
 
 distclean : clean
-	-rm -f Program/Abs.hs Program/Abs.hs.bak Program/ComposOp.hs Program/ComposOp.hs.bak Program/Doc.txt Program/Doc.txt.bak Program/ErrM.hs Program/ErrM.hs.bak Program/Layout.hs Program/Layout.hs.bak Program/Lex.x Program/Lex.x.bak Program/Par.y Program/Par.y.bak Program/Print.hs Program/Print.hs.bak Program/Skel.hs Program/Skel.hs.bak Program/Test.hs Program/Test.hs.bak Program/XML.hs Program/XML.hs.bak Program/AST.agda Program/AST.agda.bak Program/Parser.agda Program/Parser.agda.bak Program/IOLib.agda Program/IOLib.agda.bak Program/Main.agda Program/Main.agda.bak Program/Program.dtd Program/Program.dtd.bak Program/Test Program/Lex.hs Program/Par.hs Program/Par.info Program/ParData.hs Makefile
-	-rmdir -p Program/
+	-rm -f Ast/Abs.hs Ast/Abs.hs.bak Ast/ComposOp.hs Ast/ComposOp.hs.bak Ast/Doc.txt Ast/Doc.txt.bak Ast/ErrM.hs Ast/ErrM.hs.bak Ast/Layout.hs Ast/Layout.hs.bak Ast/Lex.x Ast/Lex.x.bak Ast/Par.y Ast/Par.y.bak Ast/Print.hs Ast/Print.hs.bak Ast/Skel.hs Ast/Skel.hs.bak Ast/Test.hs Ast/Test.hs.bak Ast/XML.hs Ast/XML.hs.bak Ast/AST.agda Ast/AST.agda.bak Ast/Parser.agda Ast/Parser.agda.bak Ast/IOLib.agda Ast/IOLib.agda.bak Ast/Main.agda Ast/Main.agda.bak Ast/Ast.dtd Ast/Ast.dtd.bak Ast/Test Ast/Lex.hs Ast/Par.hs Ast/Par.info Ast/ParData.hs Makefile
+	-rmdir -p Ast/
 
 # EOF
