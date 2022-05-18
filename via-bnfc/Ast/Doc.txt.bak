@@ -26,15 +26,14 @@ The set of reserved words is the set of terminals appearing in the grammar. Thos
 
 The reserved words used in Ast are the following:
   | ``and`` | ``def`` | ``else`` | ``for``
-  | ``if`` | ``in`` | ``not`` | ``or``
+  | ``if`` | ``in`` | ``or`` | ``print``
   | ``range`` | ``return`` | ``while`` | ``xor``
 
 The symbols used in Ast are the following:
   | ; | , | ( | )
   | : | { | } | =
-  | - | * | / | %
-  | + | < | > | <=
-  | >= | == | != |
+  | * | / | % | +
+  | - |  |  |
 
 ===Comments===
 There are no single-line comments in the grammar.There are no multiple-line comments in the grammar.
@@ -61,34 +60,23 @@ All other symbols are terminals.
   | //Statement// | -> | //Ident// ``=`` //Expr//
   |  |  **|**  | //Ident// ``(`` //[Expr]// ``)``
   |  |  **|**  | ``while`` ``(`` //Expr// ``)`` ``:`` ``{`` //[Decl]// ``}``
-  |  |  **|**  | ``for`` //Ident// ``in`` ``range`` ``(`` //Expr// ``,`` //Expr// ``)`` ``:`` ``{`` //[Decl]// ``}``
-  |  |  **|**  | ``if`` //Expr// ``:`` ``{`` //[Decl]// ``}``
-  |  |  **|**  | ``if`` //Expr// ``:`` ``{`` //[Decl]// ``}`` ``;`` ``else`` ``:`` ``{`` //[Decl]// ``}``
-  | //Expr6// | -> | //Integer//
+  |  |  **|**  | ``for`` ``(`` //Ident// ``in`` ``range`` ``(`` //Expr// ``,`` //Expr// ``)`` ``)`` ``:`` ``{`` //[Decl]// ``}``
+  |  |  **|**  | ``if`` ``(`` //Expr// ``)`` ``:`` ``{`` //[Decl]// ``}``
+  |  |  **|**  | ``if`` ``(`` //Expr// ``)`` ``:`` ``{`` //[Decl]// ``}`` ``else`` ``:`` ``{`` //[Decl]// ``}``
+  |  |  **|**  | ``print`` //Expr//
+  | //Expr3// | -> | //Integer//
   |  |  **|**  | //Ident//
-  |  |  **|**  | //Ident// ``(`` //[Expr]// ``)``
-  | //Expr5// | -> | ``-`` //Expr6//
-  |  |  **|**  | //Expr6//
   |  |  **|**  | ``(`` //Expr// ``)``
-  | //Expr4// | -> | ``not`` //Expr5//
-  |  |  **|**  | //Expr5//
-  | //Expr3// | -> | //Expr3// ``*`` //Expr4//
-  |  |  **|**  | //Expr3// ``/`` //Expr4//
-  |  |  **|**  | //Expr3// ``%`` //Expr4//
-  |  |  **|**  | //Expr4//
-  | //Expr2// | -> | //Expr2// ``+`` //Expr3//
-  |  |  **|**  | //Expr2// ``-`` //Expr3//
+  | //Expr2// | -> | //Expr2// ``*`` //Expr3//
+  |  |  **|**  | //Expr2// ``/`` //Expr3//
+  |  |  **|**  | //Expr2// ``%`` //Expr3//
   |  |  **|**  | //Expr3//
-  | //Expr1// | -> | //Expr1// ``and`` //Expr2//
-  |  |  **|**  | //Expr1// ``or`` //Expr2//
-  |  |  **|**  | //Expr1// ``xor`` //Expr2//
+  | //Expr1// | -> | //Expr1// ``+`` //Expr2//
+  |  |  **|**  | //Expr1// ``-`` //Expr2//
   |  |  **|**  | //Expr2//
-  | //Expr// | -> | //Expr// ``<`` //Expr1//
-  |  |  **|**  | //Expr// ``>`` //Expr1//
-  |  |  **|**  | //Expr// ``<=`` //Expr1//
-  |  |  **|**  | //Expr// ``>=`` //Expr1//
-  |  |  **|**  | //Expr// ``==`` //Expr1//
-  |  |  **|**  | //Expr// ``!=`` //Expr1//
+  | //Expr// | -> | //Expr// ``and`` //Expr1//
+  |  |  **|**  | //Expr// ``or`` //Expr1//
+  |  |  **|**  | //Expr// ``xor`` //Expr1//
   |  |  **|**  | //Expr1//
 
 

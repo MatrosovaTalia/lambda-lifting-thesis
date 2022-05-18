@@ -14,9 +14,6 @@ module Ast.Par
   , pListIdent
   , pDecl
   , pStatement
-  , pExpr6
-  , pExpr5
-  , pExpr4
   , pExpr3
   , pExpr2
   , pExpr1
@@ -36,9 +33,6 @@ import Ast.Lex
 %name pListIdent ListIdent
 %name pDecl Decl
 %name pStatement Statement
-%name pExpr6 Expr6
-%name pExpr5 Expr5
-%name pExpr4 Expr4
 %name pExpr3 Expr3
 %name pExpr2 Expr2
 %name pExpr1 Expr1
@@ -47,37 +41,31 @@ import Ast.Lex
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
 %token
-  '!='     { PT _ (TS _ 1)  }
-  '%'      { PT _ (TS _ 2)  }
-  '('      { PT _ (TS _ 3)  }
-  ')'      { PT _ (TS _ 4)  }
-  '*'      { PT _ (TS _ 5)  }
-  '+'      { PT _ (TS _ 6)  }
-  ','      { PT _ (TS _ 7)  }
-  '-'      { PT _ (TS _ 8)  }
-  '/'      { PT _ (TS _ 9)  }
-  ':'      { PT _ (TS _ 10) }
-  ';'      { PT _ (TS _ 11) }
-  '<'      { PT _ (TS _ 12) }
-  '<='     { PT _ (TS _ 13) }
-  '='      { PT _ (TS _ 14) }
-  '=='     { PT _ (TS _ 15) }
-  '>'      { PT _ (TS _ 16) }
-  '>='     { PT _ (TS _ 17) }
-  'and'    { PT _ (TS _ 18) }
-  'def'    { PT _ (TS _ 19) }
-  'else'   { PT _ (TS _ 20) }
-  'for'    { PT _ (TS _ 21) }
-  'if'     { PT _ (TS _ 22) }
-  'in'     { PT _ (TS _ 23) }
-  'not'    { PT _ (TS _ 24) }
-  'or'     { PT _ (TS _ 25) }
-  'range'  { PT _ (TS _ 26) }
-  'return' { PT _ (TS _ 27) }
-  'while'  { PT _ (TS _ 28) }
-  'xor'    { PT _ (TS _ 29) }
-  '{'      { PT _ (TS _ 30) }
-  '}'      { PT _ (TS _ 31) }
+  '%'      { PT _ (TS _ 1)  }
+  '('      { PT _ (TS _ 2)  }
+  ')'      { PT _ (TS _ 3)  }
+  '*'      { PT _ (TS _ 4)  }
+  '+'      { PT _ (TS _ 5)  }
+  ','      { PT _ (TS _ 6)  }
+  '-'      { PT _ (TS _ 7)  }
+  '/'      { PT _ (TS _ 8)  }
+  ':'      { PT _ (TS _ 9)  }
+  ';'      { PT _ (TS _ 10) }
+  '='      { PT _ (TS _ 11) }
+  'and'    { PT _ (TS _ 12) }
+  'def'    { PT _ (TS _ 13) }
+  'else'   { PT _ (TS _ 14) }
+  'for'    { PT _ (TS _ 15) }
+  'if'     { PT _ (TS _ 16) }
+  'in'     { PT _ (TS _ 17) }
+  'or'     { PT _ (TS _ 18) }
+  'print'  { PT _ (TS _ 19) }
+  'range'  { PT _ (TS _ 20) }
+  'return' { PT _ (TS _ 21) }
+  'while'  { PT _ (TS _ 22) }
+  'xor'    { PT _ (TS _ 23) }
+  '{'      { PT _ (TS _ 24) }
+  '}'      { PT _ (TS _ 25) }
   L_Ident  { PT _ (TV $$)   }
   L_integ  { PT _ (TI $$)   }
 
@@ -121,53 +109,35 @@ Statement
   : Ident '=' Expr { Ast.Abs.Assign $1 $3 }
   | Ident '(' ListExpr ')' { Ast.Abs.RoutineCall $1 $3 }
   | 'while' '(' Expr ')' ':' '{' ListDecl '}' { Ast.Abs.WhileLoop $3 $7 }
-  | 'for' Ident 'in' 'range' '(' Expr ',' Expr ')' ':' '{' ListDecl '}' { Ast.Abs.ForLoop $2 $6 $8 $12 }
-  | 'if' Expr ':' '{' ListDecl '}' { Ast.Abs.If $2 $5 }
-  | 'if' Expr ':' '{' ListDecl '}' ';' 'else' ':' '{' ListDecl '}' { Ast.Abs.IfElse $2 $5 $11 }
-
-Expr6 :: { Ast.Abs.Expr }
-Expr6
-  : Integer { Ast.Abs.EInt $1 }
-  | Ident { Ast.Abs.EVar $1 }
-  | Ident '(' ListExpr ')' { Ast.Abs.ERCall $1 $3 }
-
-Expr5 :: { Ast.Abs.Expr }
-Expr5
-  : '-' Expr6 { Ast.Abs.ENeg $2 }
-  | Expr6 { $1 }
-  | '(' Expr ')' { $2 }
-
-Expr4 :: { Ast.Abs.Expr }
-Expr4 : 'not' Expr5 { Ast.Abs.ENot $2 } | Expr5 { $1 }
+  | 'for' '(' Ident 'in' 'range' '(' Expr ',' Expr ')' ')' ':' '{' ListDecl '}' { Ast.Abs.ForLoop $3 $7 $9 $14 }
+  | 'if' '(' Expr ')' ':' '{' ListDecl '}' { Ast.Abs.If $3 $7 }
+  | 'if' '(' Expr ')' ':' '{' ListDecl '}' 'else' ':' '{' ListDecl '}' { Ast.Abs.IfElse $3 $7 $12 }
+  | 'print' Expr { Ast.Abs.Print $2 }
 
 Expr3 :: { Ast.Abs.Expr }
 Expr3
-  : Expr3 '*' Expr4 { Ast.Abs.ETimes $1 $3 }
-  | Expr3 '/' Expr4 { Ast.Abs.EDiv $1 $3 }
-  | Expr3 '%' Expr4 { Ast.Abs.ERem $1 $3 }
-  | Expr4 { $1 }
+  : Integer { Ast.Abs.EInt $1 }
+  | Ident { Ast.Abs.EVar $1 }
+  | '(' Expr ')' { $2 }
 
 Expr2 :: { Ast.Abs.Expr }
 Expr2
-  : Expr2 '+' Expr3 { Ast.Abs.EPlus $1 $3 }
-  | Expr2 '-' Expr3 { Ast.Abs.EMinus $1 $3 }
+  : Expr2 '*' Expr3 { Ast.Abs.ETimes $1 $3 }
+  | Expr2 '/' Expr3 { Ast.Abs.EDiv $1 $3 }
+  | Expr2 '%' Expr3 { Ast.Abs.ERem $1 $3 }
   | Expr3 { $1 }
 
 Expr1 :: { Ast.Abs.Expr }
 Expr1
-  : Expr1 'and' Expr2 { Ast.Abs.EAND $1 $3 }
-  | Expr1 'or' Expr2 { Ast.Abs.EOR $1 $3 }
-  | Expr1 'xor' Expr2 { Ast.Abs.EXOR $1 $3 }
+  : Expr1 '+' Expr2 { Ast.Abs.EPlus $1 $3 }
+  | Expr1 '-' Expr2 { Ast.Abs.EMinus $1 $3 }
   | Expr2 { $1 }
 
 Expr :: { Ast.Abs.Expr }
 Expr
-  : Expr '<' Expr1 { Ast.Abs.ELess $1 $3 }
-  | Expr '>' Expr1 { Ast.Abs.EGrt $1 $3 }
-  | Expr '<=' Expr1 { Ast.Abs.EELess $1 $3 }
-  | Expr '>=' Expr1 { Ast.Abs.EEGrt $1 $3 }
-  | Expr '==' Expr1 { Ast.Abs.EEQUAL $1 $3 }
-  | Expr '!=' Expr1 { Ast.Abs.ENEQUAL $1 $3 }
+  : Expr 'and' Expr1 { Ast.Abs.EAND $1 $3 }
+  | Expr 'or' Expr1 { Ast.Abs.EOR $1 $3 }
+  | Expr 'xor' Expr1 { Ast.Abs.EXOR $1 $3 }
   | Expr1 { $1 }
 
 {
