@@ -12,6 +12,7 @@ module Ast.Par
   , pListDecl
   , pListExpr
   , pListIdent
+  , pRoutineDecl
   , pDecl
   , pStatement
   , pExpr6
@@ -34,6 +35,7 @@ import Ast.Lex
 %name pListDecl ListDecl
 %name pListExpr ListExpr
 %name pListIdent ListIdent
+%name pRoutineDecl RoutineDecl
 %name pDecl Decl
 %name pStatement Statement
 %name pExpr6 Expr6
@@ -110,11 +112,15 @@ ListIdent
   | Ident { (:[]) $1 }
   | Ident ',' ListIdent { (:) $1 $3 }
 
+RoutineDecl :: { Ast.Abs.RoutineDecl }
+RoutineDecl
+  : 'def' Ident '(' ListIdent ')' ':' '{' ListDecl '}' { Ast.Abs.RoutineDecl $2 $4 $8 }
+
 Decl :: { Ast.Abs.Decl }
 Decl
   : 'return' Expr { Ast.Abs.DeclReturn $2 }
   | Statement { Ast.Abs.DeclStatement $1 }
-  | 'def' Ident '(' ListIdent ')' ':' '{' ListDecl '}' { Ast.Abs.DeclDef $2 $4 $8 }
+  | RoutineDecl { Ast.Abs.DeclDef $1 }
 
 Statement :: { Ast.Abs.Statement }
 Statement

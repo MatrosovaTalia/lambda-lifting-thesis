@@ -23,11 +23,15 @@ transAst :: Ast.Abs.Ast -> Result
 transAst x = case x of
   Ast.Abs.Ast decls -> failure x
 
+transRoutineDecl :: Ast.Abs.RoutineDecl -> Result
+transRoutineDecl x = case x of
+  Ast.Abs.RoutineDecl ident idents decls -> failure x
+
 transDecl :: Ast.Abs.Decl -> Result
 transDecl x = case x of
   Ast.Abs.DeclReturn expr -> failure x
   Ast.Abs.DeclStatement statement -> failure x
-  Ast.Abs.DeclDef ident idents decls -> failure x
+  Ast.Abs.DeclDef routinedecl -> failure x
 
 transStatement :: Ast.Abs.Statement -> Result
 transStatement x = case x of
