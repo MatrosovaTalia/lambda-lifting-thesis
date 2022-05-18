@@ -26,12 +26,14 @@ data Statement
     | ForLoop Ident Expr Expr [Decl]
     | If Expr [Decl]
     | IfElse Expr [Decl] [Decl]
-    | Print Expr
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Expr
     = EInt Integer
     | EVar Ident
+    | ERCall Ident [Expr]
+    | ENeg Expr
+    | ENot Expr
     | ETimes Expr Expr
     | EDiv Expr Expr
     | ERem Expr Expr
@@ -40,6 +42,12 @@ data Expr
     | EAND Expr Expr
     | EOR Expr Expr
     | EXOR Expr Expr
+    | ELess Expr Expr
+    | EGrt Expr Expr
+    | EELess Expr Expr
+    | EEGrt Expr Expr
+    | EEQUAL Expr Expr
+    | ENEQUAL Expr Expr
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 newtype Ident = Ident String

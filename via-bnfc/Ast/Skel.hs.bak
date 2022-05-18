@@ -37,12 +37,14 @@ transStatement x = case x of
   Ast.Abs.ForLoop ident expr1 expr2 decls -> failure x
   Ast.Abs.If expr decls -> failure x
   Ast.Abs.IfElse expr decls1 decls2 -> failure x
-  Ast.Abs.Print expr -> failure x
 
 transExpr :: Ast.Abs.Expr -> Result
 transExpr x = case x of
   Ast.Abs.EInt integer -> failure x
   Ast.Abs.EVar ident -> failure x
+  Ast.Abs.ERCall ident exprs -> failure x
+  Ast.Abs.ENeg expr -> failure x
+  Ast.Abs.ENot expr -> failure x
   Ast.Abs.ETimes expr1 expr2 -> failure x
   Ast.Abs.EDiv expr1 expr2 -> failure x
   Ast.Abs.ERem expr1 expr2 -> failure x
@@ -51,3 +53,9 @@ transExpr x = case x of
   Ast.Abs.EAND expr1 expr2 -> failure x
   Ast.Abs.EOR expr1 expr2 -> failure x
   Ast.Abs.EXOR expr1 expr2 -> failure x
+  Ast.Abs.ELess expr1 expr2 -> failure x
+  Ast.Abs.EGrt expr1 expr2 -> failure x
+  Ast.Abs.EELess expr1 expr2 -> failure x
+  Ast.Abs.EEGrt expr1 expr2 -> failure x
+  Ast.Abs.EEQUAL expr1 expr2 -> failure x
+  Ast.Abs.ENEQUAL expr1 expr2 -> failure x

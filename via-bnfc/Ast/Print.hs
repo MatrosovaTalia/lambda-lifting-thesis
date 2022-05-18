@@ -159,11 +159,15 @@ instance Print [Ast.Abs.Ident] where
   prt _ [x] = concatD [prt 0 x]
   prt _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
 
+instance Print Ast.Abs.RoutineDecl where
+  prt i = \case
+    Ast.Abs.RoutineDecl id_ ids decls -> prPrec i 0 (concatD [doc (showString "def"), prt 0 id_, doc (showString "("), prt 0 ids, doc (showString ")"), doc (showString ":"), doc (showString "{"), prt 0 decls, doc (showString "}")])
+
 instance Print Ast.Abs.Decl where
   prt i = \case
     Ast.Abs.DeclReturn expr -> prPrec i 0 (concatD [doc (showString "return"), prt 0 expr])
     Ast.Abs.DeclStatement statement -> prPrec i 0 (concatD [prt 0 statement])
-    Ast.Abs.DeclDef id_ ids decls -> prPrec i 0 (concatD [doc (showString "def"), prt 0 id_, doc (showString "("), prt 0 ids, doc (showString ")"), doc (showString ":"), doc (showString "{"), prt 0 decls, doc (showString "}")])
+    Ast.Abs.DeclDef routinedecl -> prPrec i 0 (concatD [prt 0 routinedecl])
 
 instance Print Ast.Abs.Statement where
   prt i = \case
