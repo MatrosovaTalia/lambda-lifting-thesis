@@ -10,13 +10,14 @@ import Prelude (Integer, String)
 import qualified Prelude as C (Eq, Ord, Show, Read)
 import qualified Data.String
 
-data Program = Program [Decl]
+data Ast = Ast [Decl]
+  deriving (C.Eq, C.Ord, C.Show, C.Read)
+
+data RoutineDecl = RoutineDecl Ident [Ident] [Decl]
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Decl
-    = DeclReturn Expr
-    | DeclStatement Statement
-    | DeclDef Ident [Ident] [Decl]
+    = DeclReturn Expr | DeclStatement Statement | DeclDef RoutineDecl
   deriving (C.Eq, C.Ord, C.Show, C.Read)
 
 data Statement

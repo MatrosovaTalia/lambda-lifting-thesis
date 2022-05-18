@@ -22,7 +22,7 @@ import Control.Monad      ( when )
 import Program.Abs    ()
 import Program.Layout ( resolveLayout )
 import Program.Lex    ( Token, mkPosToken )
-import Program.Par    ( pProgram, myLexer )
+import Program.Par    ( pAst, myLexer )
 import Program.Print  ( Print, printTree )
 import Program.Skel   ()
 
@@ -72,7 +72,7 @@ main = do
   args <- getArgs
   case args of
     ["--help"] -> usage
-    []         -> getContents >>= run 2 pProgram
-    "-s":fs    -> mapM_ (runFile 0 pProgram) fs
-    fs         -> mapM_ (runFile 2 pProgram) fs
+    []         -> getContents >>= run 2 pAst
+    "-s":fs    -> mapM_ (runFile 0 pAst) fs
+    fs         -> mapM_ (runFile 2 pAst) fs
 

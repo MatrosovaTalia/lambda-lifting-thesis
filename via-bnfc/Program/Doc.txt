@@ -45,19 +45,23 @@ The symbols -> (production),  **|**  (union)
 and **eps** (empty rule) belong to the BNF notation.
 All other symbols are terminals.
 
-  | //Program// | -> | //[Decl]//
+  | //Ast// | -> | //[Decl]//
   | //[Decl]// | -> | **eps**
   |  |  **|**  | //Decl//
   |  |  **|**  | //Decl// ``;`` //[Decl]//
+  | //[Statement]// | -> | **eps**
+  |  |  **|**  | //Statement//
+  |  |  **|**  | //Statement// ``;`` //[Statement]//
   | //[Expr]// | -> | **eps**
   |  |  **|**  | //Expr//
   |  |  **|**  | //Expr// ``,`` //[Expr]//
   | //[Ident]// | -> | **eps**
   |  |  **|**  | //Ident//
   |  |  **|**  | //Ident// ``,`` //[Ident]//
+  | //RoutineDecl// | -> | ``def`` //Ident// ``(`` //[Ident]// ``)`` ``:`` ``{`` //[Decl]// ``}``
   | //Decl// | -> | ``return`` //Expr//
   |  |  **|**  | //Statement//
-  |  |  **|**  | ``def`` //Ident// ``(`` //[Ident]// ``)`` ``:`` ``{`` //[Decl]// ``}``
+  |  |  **|**  | //RoutineDecl//
   | //Statement// | -> | //Ident// ``=`` //Expr//
   |  |  **|**  | //Ident// ``(`` //[Expr]// ``)``
   |  |  **|**  | ``while`` ``(`` //Expr// ``)`` ``:`` ``{`` //[Decl]// ``}``
