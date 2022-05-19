@@ -15,8 +15,7 @@ data NodeType
     -- Declaration nodes:
     | NodeDeclDef Int -- arity of function
     -- Expression nodes:
-    | NodeInt Int
-    | NodeVar
+    | NodeInt Int    | NodeVar
     | NodeRCall
     | NodeNeg
     | NodeNot

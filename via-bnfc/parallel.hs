@@ -1,9 +1,9 @@
 module Main where
 
-import           Program.Abs
-import           Program.Layout (resolveLayout)
-import           Program.Par    (myLexer, pProgram)
-import           Program.Print  (printTree, Print)
+import           Ast.Abs
+import           Ast.Layout (resolveLayout)
+import           Ast.Par    (myLexer, pAst)
+import           Ast.Print  (printTree, Print)
 import           Data.List      ((\\), isPrefixOf, elemIndices, partition, nub)
 import           Data.Maybe     (listToMaybe)
 import           Text.Show
@@ -16,8 +16,8 @@ import Control.Monad.State (State)
 
 
 -- stage1: generate recursive AST
-generateRecursiveAST :: Program -> AST
-treeToVectorTree :: AST -> VectorTree
+generateRecursiveAST :: Ast -> rAst
+treeToVectorTree :: rAst -> VectorTree
 treeToVectorTree tree = (depthAcc, typesAcc, valuesAcc)
     where
         treeToList currLevel (Tree root children)
@@ -39,18 +39,18 @@ treeToVectorTree tree = (depthAcc, typesAcc, valuesAcc)
 
 
 -- stage2: calculate scopes number -> list on Nodes (scopes, de Bruijn ids, depth, value , type)
-getScopesCount :: AST -> [(Ident, Int)]
+getScopesCount :: rAst -> [(Ident, Int)]
 
 -- -- stage3: depth scopes
--- getDeBruijn :: AST -> [(Ident, Int)]
+-- getDeBruijn :: rAst -> [(Ident, Int)]
 
---stage4: Construct PAST
-buildParrallelAST :: AST -> PAST
+--stage4: Construct PrAst
+buildParrallelAST :: rAst -> PAST
 
 --stage5: lift
 liftPast :: PAST -> PAST
 
---stage6: convert PAST to AST
-convertToAST :: PAST -> AST
+--stage6: convert PAST to rAst
+convertToAST :: PAST -> rAst
 
-printResult :: AST -> Text
+printResult :: rAst -> Text
