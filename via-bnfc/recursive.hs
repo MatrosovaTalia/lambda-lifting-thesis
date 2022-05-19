@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Replace case with fromMaybe" #-}
 module Main where
 
 import           Ast.Abs
@@ -24,18 +26,18 @@ main = do
   let tokens = resolveLayout True (myLexer input)
   case pAst tokens of
     Left err -> print err
-    Right Ast -> do
+    Right ast -> do
       putStrLn "Before:"
-      putStrLn (printTree Ast)
+      putStrLn (printTree ast)
       putStrLn "=============================="
       putStrLn "freeVars:"
-      putStrLn (printTree (freeVars Ast))
+      putStrLn (printTree (freeVars ast))
       putStrLn "freeAndDeclared:"
-      print (freeAndDeclared Ast)
+      print (freeAndDeclared ast)
       putStrLn "Rename all bound variables:"
-      putStrLn (printTree (renameAst Ast))
+      putStrLn (printTree (renameAst ast))
       putStrLn "Update Routine Decl:"
-      putStrLn (printTree (addParams (renameAst Ast)))
+      putStrLn (printTree (addParams (renameAst ast)))
 
 data FreeAndDeclared = FreeAndDeclared
   { freeIdents     :: [Ident]
