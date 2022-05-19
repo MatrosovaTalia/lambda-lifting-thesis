@@ -17,28 +17,6 @@ import           System.IO
 import           Text.Show
 -- import           Data.Map
 
-
-
-main :: IO ()
-main = do
-  handle <- openFile "tests/sum.py" ReadMode
-  input <- hGetContents handle
-  let tokens = resolveLayout True (myLexer input)
-  case pAst tokens of
-    Left err -> print err
-    Right ast -> do
-      putStrLn "Before:"
-      putStrLn (printTree ast)
-      putStrLn "=============================="
-      putStrLn "freeVars:"
-      putStrLn (printTree (freeVars ast))
-      putStrLn "freeAndDeclared:"
-      print (freeAndDeclared ast)
-      putStrLn "Rename all bound variables:"
-      putStrLn (printTree (renameAst ast))
-      putStrLn "Update Routine Decl:"
-      putStrLn (printTree (addParams (renameAst ast)))
-
 data FreeAndDeclared = FreeAndDeclared
   { freeIdents     :: [Ident]
   , declaredIdents :: [(Ident, [Ident])]
