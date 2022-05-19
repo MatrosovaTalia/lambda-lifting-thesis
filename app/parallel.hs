@@ -23,10 +23,12 @@ main = do
   let tokens = resolveLayout True (myLexer input)
   case pAst tokens of
     Left err -> print err
-    Right (Ast decls) -> do
+    Right ast@(Ast decls) -> do
       let entries = blockToEntry emptyContext decls
           nodesWithDepth = (\e -> (entryDepth e, entryNodeType e)) <$> entries
       putStr $ ppNodesWithDepth nodesWithDepth
+      let past = toPAST ast
+      putStr (ppPAST past)
 
 -- treeToVectorTree :: rAst -> VectorTree
 -- treeToVectorTree tree = (depthAcc, typesAcc, valuesAcc)

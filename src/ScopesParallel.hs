@@ -1,19 +1,21 @@
 {-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE LambdaCase      #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE RecordWildCards #-}
 module ScopesParallel where
 
 import           Ast.Abs
-import           Ast.Layout            (resolveLayout)
-import           Ast.Par               (myLexer, pAst)
-import           Ast.Print             (Print, printTree)
-import           Data.Array.Accelerate (Elt)
-import           Data.List             (elemIndex, elemIndices, isPrefixOf, nub,
-                                        partition, (\\))
-import           GHC.Generics          (Generic)
-import           Recursive             (FreeAndDeclared (..),
-                                        freeAndDeclaredDecl)
+import           Data.Array.Accelerate             (Acc, Elt, Matrix, Vector,
+                                                    Z (..), boolToInt, constant,
+                                                    generate, pattern I1,
+                                                    pattern I2, (!), (:.) (..))
+import qualified Data.Array.Accelerate             as Acc
+import qualified Data.Array.Accelerate.LLVM.Native as Acc
+import           Data.List                         (elemIndex, zip4)
+import           GHC.Generics                      (Generic)
+import           Recursive                         (FreeAndDeclared (..),
+                                                    freeAndDeclaredDecl)
 
 data NodeType
     = NodeProgram
@@ -53,11 +55,56 @@ data DeBruijnIndex = DeBruijnIndex
   } deriving (Show, Eq, Generic, Elt)
 
 data Entry = Entry {
-    entryDepth         :: Int,
-    entryLevel         :: Int,
-    entryDeBruijnIndex :: Maybe DeBruijnIndex,
-    entryNodeType      :: NodeType
+    entryDepth    :: Int,
+    entryLevel    :: Int,
+    entryNodeType :: NodeType
   } deriving (Show, Eq)
+
+type NodeCoords = Matrix Int
+
+data PAST = PAST
+  { depthVector    :: Acc (Vector Int)
+  , levelVector    :: Acc (Vector Int)
+  , nodeTypeVector :: Acc (Vector NodeType)
+  , nodeCoords     :: Acc NodeCoords
+  } deriving (Show)
+
+toPAST :: Ast -> PAST
+toPAST (Ast decls) = PAST {..}
+  where
+    entries = blockToEntry emptyContext decls
+    depthList = map entryDepth entries
+    levelList = map entryLevel entries
+    nodeTypeList = map entryNodeType entries
+    n = length depthList
+    depthVector = Acc.use (Acc.fromList (Z:.n) depthList)
+    levelVector = Acc.use (Acc.fromList (Z:.n) levelList)
+    nodeTypeVector = Acc.use (Acc.fromList (Z:.n) nodeTypeList)
+    nodeCoords = depthsToNodeCoords (maximum depthList) n depthVector
+
+
+-- | Pretty-print a 'PAST'.
+ppPAST :: PAST -> String
+ppPAST PAST{..} = unlines $ map f (zip4 ds lvls coords ns)
+  where
+    f (d, l, c, n) = d <> " \t " <> l <> " \t " <> c <> " \t " <> n
+    ds     = show <$> Acc.toList (Acc.run depthVector)
+    lvls   = show <$> Acc.toList (Acc.run levelVector)
+    coords = drop 1 (lines (show (Acc.run nodeCoords)))
+    ns     = show <$> Acc.toList (Acc.run nodeTypeVector)
+
+-- | Compute node coordinates from depth vector.
+depthsToNodeCoords
+  :: Int              -- ^ Maximum allowed depth.
+  -> Int              -- ^ Number of elements (length of the depth vector).
+  -> Acc (Vector Int) -- ^ Depth vector (prepared on GPU).
+  -> Acc NodeCoords   -- ^ Node coordinates (prepared on GPU).
+depthsToNodeCoords maxDepth n depthVector = do
+  let dims = I2 (constant maxDepth) (constant n)
+      depthMatrix = generate dims $ \(I2 i j) ->
+        boolToInt ((depthVector ! (I1 j)) Acc.== i)
+      scanMatrix = Acc.transpose (Acc.scanl1 (+) depthMatrix)
+  Acc.imap (\(I2 i j) x -> x * boolToInt (j Acc.<= depthVector ! (I1 i))) scanMatrix
 
 type Scope = [Ident]
 
@@ -98,7 +145,7 @@ declToEntry :: Context -> Decl -> [Entry]
 declToEntry context@Context{..} = \case
   DeclStatement st -> stToEntry context st
   DeclReturn    expr -> exprToEntry context expr
-  DeclDef (RoutineDecl f params body) ->
+  DeclDef (RoutineDecl _f params body) -> -- NOTE: _f was added to context in blockToEntry!
     let newContext = context
           { contextDepth = contextDepth + 1
           , contextLevel = contextLevel + 1
@@ -109,24 +156,23 @@ declToEntry context@Context{..} = \case
     mkNode ty = Entry {
         entryDepth = contextDepth,
         entryLevel = contextLevel,
-        entryDeBruijnIndex = Nothing,
         entryNodeType = ty
     }
 
 stToEntry :: Context -> Statement -> [Entry]
 stToEntry context@Context{..} = \case
-  Assign id expr -> mkNode (NodeAssign (findVarInScopes' id contextScopes)) : goExpr expr
+  Assign x expr -> mkNode (NodeAssign (findVarInScopes' x contextScopes)) : goExpr expr
   WhileLoop expr decls     -> mkNode NodeWhileLoop : goExpr expr ++ goBlock decls
-  ForLoop id expr1 expr2 decls ->
+  ForLoop x expr1 expr2 decls ->
     let newContext = context
           { contextDepth = contextDepth + 1
           , contextLevel = contextLevel + 1
-          , contextScopes = [id] : contextScopes
+          , contextScopes = [x] : contextScopes
           }
      in mkNode NodeForLoop : goExpr expr1 ++ goExpr expr2 ++ blockToEntry newContext decls
   If expr decls            -> mkNode NodeIf : goExpr expr ++ goBlock decls
   IfElse expr declsThen declsElse -> mkNode NodeIf : goExpr expr ++ goBlock declsThen ++ goBlock declsElse
-  RoutineCall id exprs     -> mkNode (NodeRoutineCall (findVarInScopes' id contextScopes)) : concatMap goExpr exprs
+  RoutineCall f exprs     -> mkNode (NodeRoutineCall (findVarInScopes' f contextScopes)) : concatMap goExpr exprs
 
   where
     goExpr = exprToEntry context { contextDepth = contextDepth + 1 }
@@ -135,7 +181,6 @@ stToEntry context@Context{..} = \case
     mkNode ty = Entry {
         entryDepth = contextDepth,
         entryLevel = contextLevel,
-        entryDeBruijnIndex = Nothing,
         entryNodeType = ty
     }
 
@@ -158,7 +203,7 @@ exprToEntry context@Context{..} = \case
   EEGrt   e1 e2 -> mkNode NodeEGrt    : go e1 ++ go e2
   EEQUAL  e1 e2 -> mkNode NodeEQUAL   : go e1 ++ go e2
   ENEQUAL e1 e2 -> mkNode NodeNEQUAL  : go e1 ++ go e2
-  ERCall  id es -> mkNode (NodeRCall(findVarInScopes' id contextScopes) )   : concatMap go es
+  ERCall  f  es -> mkNode (NodeRCall(findVarInScopes' f contextScopes) )   : concatMap go es
   ENeg    e     -> mkNode NodeNeg     : go e
   ENot    e     -> mkNode NodeNot     : go e
   where
@@ -167,7 +212,6 @@ exprToEntry context@Context{..} = \case
     mkNode ty = Entry {
         entryDepth = contextDepth,
         entryLevel = contextLevel,
-        entryDeBruijnIndex = Nothing,
         entryNodeType = ty
     }
 
