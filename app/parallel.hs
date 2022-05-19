@@ -26,7 +26,6 @@ main = do
     Right (Ast decls) -> do
       let entries = blockToEntry emptyContext decls
           nodesWithDepth = (\e -> (entryDepth e, entryNodeType e)) <$> entries
-      mapM_ print nodesWithDepth
       putStr $ ppNodesWithDepth nodesWithDepth
 
 -- treeToVectorTree :: rAst -> VectorTree
