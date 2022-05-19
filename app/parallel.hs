@@ -17,10 +17,17 @@ import           ScopesParallel
 
 
 main :: IO ()
-main = error "not implemented yet"
-
--- stage1: generate recursive AST
--- generateRecursiveAST :: Ast -> rASt
+main = do
+  handle <- openFile "tests/sum.py" ReadMode
+  input <- hGetContents handle
+  let tokens = resolveLayout True (myLexer input)
+  case pAst tokens of
+    Left err -> print err
+    Right (Ast decls) -> do
+      let entries = blockToEntry emptyContext decls
+          nodesWithDepth = (\e -> (entryDepth e, entryNodeType e)) <$> entries
+      mapM_ print nodesWithDepth
+      putStr $ ppNodesWithDepth nodesWithDepth
 
 -- treeToVectorTree :: rAst -> VectorTree
 -- treeToVectorTree tree = (depthAcc, typesAcc, valuesAcc)

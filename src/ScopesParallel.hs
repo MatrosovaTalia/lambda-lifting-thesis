@@ -225,6 +225,7 @@ depthsTree = map (<> "─") . scanr1 prev . map defaultLine
       where
         g ' ' '│' = '│'
         g ' ' '└' = '│'
+        g ' ' '├' = '│'
         g '─' '└' = '┬'
         g '└' '│' = '├'
         g '└' '└' = '├'
