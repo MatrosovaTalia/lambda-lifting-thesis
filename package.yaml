@@ -1,0 +1,59 @@
+name:                lambda-lifting-thesis
+version:             0.1.0
+github:              "MatrosovaTalia/lambda-lifting-thesis"
+license:             BSD3
+author:              "Nataliya Matrosova"
+maintainer:          "n.matrosova@innopolis.university"
+copyright:           "2022 Nataliya Matrosova"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/MatrosovaTalia/lambda-lifting-thesis#readme>
+
+dependencies:
+- accelerate
+- accelerate-llvm
+- accelerate-llvm-native
+- array
+- base >= 4.7 && < 5
+- mtl
+
+library:
+  source-dirs: src
+
+executables:
+  lambda-lifting-parallel:
+    main:                app/parallel.hs
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - lambda-lifting-thesis
+
+  lambda-lifting-recursive:
+    main:                app/recursive.hs
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - lambda-lifting-thesis
+
+  lambda-lifting-test:
+    main:                app/Test.hs
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - lambda-lifting-thesis

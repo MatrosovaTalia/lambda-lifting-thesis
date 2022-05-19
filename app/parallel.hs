@@ -1,22 +1,24 @@
 module Main where
 
 import           Ast.Abs
-import           Ast.Layout (resolveLayout)
-import           Ast.Par    (myLexer, pAst)
-import           Ast.Print  (printTree, Print)
-import           Data.List      ((\\), isPrefixOf, elemIndices, partition, nub)
-import           Data.Maybe     (listToMaybe)
-import           Text.Show
-import           System.IO
+import           Ast.Layout          (resolveLayout)
+import           Ast.Par             (myLexer, pAst)
+import           Ast.Print           (Print, printTree)
 import           Control.Monad
-import Text.XHtml (body)
-import Foreign (free)
-import Control.Monad.State (State)
+import           Control.Monad.State (State)
+import           Data.List           (elemIndices, isPrefixOf, nub, partition,
+                                      (\\))
+import           Data.Maybe          (listToMaybe)
+import           Foreign             (free)
+import           System.IO
+import           Text.Show
 -- import           Data.Map
+import           ScopesParallel
 
 
 -- stage1: generate recursive AST
-generateRecursiveAST :: Ast -> rAst
+-- generateRecursiveAST :: Ast -> rASt
+
 treeToVectorTree :: rAst -> VectorTree
 treeToVectorTree tree = (depthAcc, typesAcc, valuesAcc)
     where

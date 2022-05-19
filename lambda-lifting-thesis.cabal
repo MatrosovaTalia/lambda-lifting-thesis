@@ -1,37 +1,92 @@
-cabal-version:      2.4
-name:               lambda-lifting-thesis
-version:            0.1.0.0
+cabal-version: 1.12
 
--- A short (one-line) description of the package.
--- synopsis:
+-- This file has been generated from package.yaml by hpack version 0.34.4.
+--
+-- see: https://github.com/sol/hpack
 
--- A longer description of the package.
--- description:
-
--- A URL where users can report bugs.
--- bug-reports:
-
--- The license under which the package is released.
--- license:
-author:             Nataliya Matrosova
-maintainer:         zamoklaputa@gmail.com
-
--- A copyright notice.
--- copyright:
--- category:
+name:           lambda-lifting-thesis
+version:        0.1.0
+description:    Please see the README on GitHub at <https://github.com/MatrosovaTalia/lambda-lifting-thesis#readme>
+homepage:       https://github.com/MatrosovaTalia/lambda-lifting-thesis#readme
+bug-reports:    https://github.com/MatrosovaTalia/lambda-lifting-thesis/issues
+author:         Nataliya Matrosova
+maintainer:     n.matrosova@innopolis.university
+copyright:      2022 Nataliya Matrosova
+license:        BSD3
+build-type:     Simple
 extra-source-files:
-    CHANGELOG.md
     README.md
+    ChangeLog.md
 
-executable lambda-lifting-thesis
-    main-is:          Main.hs
+source-repository head
+  type: git
+  location: https://github.com/MatrosovaTalia/lambda-lifting-thesis
 
-    -- Modules included in this executable, other than Main.
-    -- other-modules:
+library
+  exposed-modules:
+      Ast.Abs
+      Ast.ErrM
+      Ast.Layout
+      Ast.Lex
+      Ast.Par
+      Ast.Print
+      Ast.Skel
+      Recursive
+      ScopesParallel
+  other-modules:
+      Paths_lambda_lifting_thesis
+  hs-source-dirs:
+      src
+  build-depends:
+      accelerate
+    , accelerate-llvm
+    , accelerate-llvm-native
+    , array
+    , base >=4.7 && <5
+    , mtl
+  default-language: Haskell2010
 
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
-    build-depends:    base ^>=4.14.3.0
-    hs-source-dirs:   app
-    default-language: Haskell2010
+executable lambda-lifting-parallel
+  main-is: app/parallel.hs
+  other-modules:
+      Paths_lambda_lifting_thesis
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      accelerate
+    , accelerate-llvm
+    , accelerate-llvm-native
+    , array
+    , base >=4.7 && <5
+    , lambda-lifting-thesis
+    , mtl
+  default-language: Haskell2010
 
+executable lambda-lifting-recursive
+  main-is: app/recursive.hs
+  other-modules:
+      Paths_lambda_lifting_thesis
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      accelerate
+    , accelerate-llvm
+    , accelerate-llvm-native
+    , array
+    , base >=4.7 && <5
+    , lambda-lifting-thesis
+    , mtl
+  default-language: Haskell2010
+
+executable lambda-lifting-test
+  main-is: app/Test.hs
+  other-modules:
+      Paths_lambda_lifting_thesis
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      accelerate
+    , accelerate-llvm
+    , accelerate-llvm-native
+    , array
+    , base >=4.7 && <5
+    , lambda-lifting-thesis
+    , mtl
+  default-language: Haskell2010

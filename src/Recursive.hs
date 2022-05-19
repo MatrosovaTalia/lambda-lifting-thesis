@@ -1,27 +1,27 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Replace case with fromMaybe" #-}
-module Main where
+module Recursive where
 
 import           Ast.Abs
-import           Ast.Layout (resolveLayout)
-import           Ast.Par    (myLexer, pAst)
-import           Ast.Print  (printTree, Print)
-import           Data.List      ((\\), isPrefixOf, elemIndices, partition, nub)
+import           Ast.Layout          (resolveLayout)
+import           Ast.Par             (myLexer, pAst)
+import           Ast.Print           (Print, printTree)
+import           Data.List           (elemIndices, isPrefixOf, nub, partition,
+                                      (\\))
 -- import           Data.String
-import           Data.Maybe     (listToMaybe)
-import           Text.Show
-import           System.IO
 import           Control.Monad
-import Text.XHtml (body)
-import Foreign (free)
-import Control.Monad.State (State)
+import           Control.Monad.State (State)
+import           Data.Maybe          (listToMaybe)
+import           Foreign             (free)
+import           System.IO
+import           Text.Show
 -- import           Data.Map
 
 
 
 main :: IO ()
-main = do 
-  handle <- openFile "tests/sum.py" ReadMode 
+main = do
+  handle <- openFile "tests/sum.py" ReadMode
   input <- hGetContents handle
   let tokens = resolveLayout True (myLexer input)
   case pAst tokens of
@@ -49,15 +49,15 @@ instance Semigroup FreeAndDeclared where
     FreeAndDeclared (fs1 <> fs2) (ds1 <> ds2)
 
 instance Monoid FreeAndDeclared where
-  mempty = FreeAndDeclared [] [] 
+  mempty = FreeAndDeclared [] []
 
 freeAndDeclared :: Ast -> FreeAndDeclared
 freeAndDeclared (Ast decls) = foldMap freeAndDeclaredDecl decls
 
 freeAndDeclaredDecl :: Decl -> FreeAndDeclared
-freeAndDeclaredDecl (DeclReturn exp) = freeAndDeclaredExpr exp
+freeAndDeclaredDecl (DeclReturn exp)   = freeAndDeclaredExpr exp
 freeAndDeclaredDecl (DeclStatement st) = freeAndDeclaredStatement st
-freeAndDeclaredDecl (DeclDef def) = freeAndDeclaredDef def
+freeAndDeclaredDecl (DeclDef def)      = freeAndDeclaredDef def
 
 freeAndDeclaredBlock :: [Decl] -> FreeAndDeclared
 freeAndDeclaredBlock decls = FreeAndDeclared (fs \\ map fst ds) []
@@ -94,7 +94,7 @@ freeVars (Ast decls) = map freeVarsDecl decls
 
 freeVarsDef :: RoutineDecl  -> [Ident]
 freeVarsDef (RoutineDecl id params body) = bodyFreeVars \\ params
-  where 
+  where
     bodyFreeVars = concatMap freeVarsDecl body
 
 
@@ -105,13 +105,13 @@ freeVarsDecl (DeclDef def)      = freeVarsDef def
 
 freeVarsStatement :: Statement -> [Ident]
 freeVarsStatement (Assign x expr) = freeVarsExpr expr \\ [x]
-freeVarsStatement (If cond tru) = 
+freeVarsStatement (If cond tru) =
                     freeVarsExpr cond ++ concatMap freeVarsDecl tru
-freeVarsStatement (IfElse cond tru fls) = 
+freeVarsStatement (IfElse cond tru fls) =
                     freeVarsExpr cond ++ concatMap freeVarsDecl tru ++ concatMap freeVarsDecl fls
-freeVarsStatement (WhileLoop cond decls) = 
+freeVarsStatement (WhileLoop cond decls) =
                     freeVarsExpr cond ++ concatMap freeVarsDecl decls
-freeVarsStatement (ForLoop i from to decls) = 
+freeVarsStatement (ForLoop i from to decls) =
                     (freeVarsExpr from ++ freeVarsExpr to ++ concatMap freeVarsDecl decls) \\ [i]
 freeVarsStatement (RoutineCall f args) = f : concatMap freeVarsExpr args
 
@@ -122,7 +122,7 @@ freeVarsExpr expr =
   case expr of
     EInt _          -> []
     EVar x          -> [x]
-    ERCall id exprs -> id : concatMap freeVarsExpr exprs 
+    ERCall id exprs -> id : concatMap freeVarsExpr exprs
     ENot expr       -> freeVarsExpr expr
     ENeg expr       -> freeVarsExpr expr
     EPlus l r       -> freeVarsExpr l ++ freeVarsExpr r
@@ -194,18 +194,18 @@ addParamsExprWith ds expr =
     EELess l r      -> EELess (addParamsExprWith ds l) (addParamsExprWith ds r)
     EEGrt l r       -> EEGrt (addParamsExprWith ds l) (addParamsExprWith ds r)
 
-addParamsDefWith :: [(Ident, [Ident])] -> RoutineDecl -> RoutineDecl 
+addParamsDefWith :: [(Ident, [Ident])] -> RoutineDecl -> RoutineDecl
 addParamsDefWith ds def@(RoutineDecl id params body) = RoutineDecl id (params <> newParams) (addParamsBlockWith ds body)
   where
     newParams = fs \\ map fst ds
     FreeAndDeclared fs _ds = freeAndDeclaredDef def
 
-addParamsDef :: RoutineDecl -> RoutineDecl 
+addParamsDef :: RoutineDecl -> RoutineDecl
 addParamsDef def@(RoutineDecl id params body) = RoutineDecl id (params ++ newParams) (map addParamsDecl body)
   where
     FreeAndDeclared newParams _ds = freeAndDeclaredDef def
 
-addParamsDecl :: Decl -> Decl 
+addParamsDecl :: Decl -> Decl
 addParamsDecl (DeclReturn ret)   = DeclReturn ret
 addParamsDecl (DeclStatement st) = DeclStatement st
 addParamsDecl (DeclDef def)      = DeclDef (addParamsDef def)
@@ -270,16 +270,16 @@ renameStatement context st =
     rename = renameWith context
 
 renameWith :: Context -> Ident -> Ident
-renameWith context x = 
+renameWith context x =
   case lookup x (renamings context) of
-          Just y -> y
+          Just y  -> y
           Nothing -> x
 
 renameExpr :: Context -> Expr -> Expr
-renameExpr context expr = 
+renameExpr context expr =
   case expr of
-    EInt{}        -> expr
-    EVar x -> EVar (rename x)
+    EInt{}          -> expr
+    EVar x          -> EVar (rename x)
     ERCall id exprs -> ERCall (rename id) (map (renameExpr context) exprs)
     ENot expr       -> ENot (renameExpr context expr)
     ENeg expr       -> ENeg (renameExpr context expr)
@@ -301,7 +301,7 @@ renameExpr context expr =
       rename = renameWith context
 
 renameDef :: Context -> RoutineDecl -> RoutineDecl
-renameDef context@(Context outer renames) def@(RoutineDecl id params body) = 
+renameDef context@(Context outer renames) def@(RoutineDecl id params body) =
   case lookup id renames of
     Just newId -> RoutineDecl newId newParams (renameBlock newContext body)
     Nothing    -> RoutineDecl id    newParams (renameBlock newContext body)
@@ -314,8 +314,8 @@ renameDef context@(Context outer renames) def@(RoutineDecl id params body) =
         Just y  -> y
         Nothing -> x
 
--- Stage 3 
--- addParamsCall ::  -> DeclStatement 
+-- Stage 3
+-- addParamsCall ::  -> DeclStatement
 -- addParamsCall  Statement (RoutineCall id params) = Statement id params ++ freeVars
 
 
@@ -327,7 +327,7 @@ renameDef context@(Context outer renames) def@(RoutineDecl id params body) =
 
 -- -- Для каждой фукнции, добавить свободные переменные в список формальных аргументов
 -- stage2 :: Ast -> Ast
--- stage2 Ast = addParams 
+-- stage2 Ast = addParams
 
 -- -- Для каждого вызова функции, добавить свободные переменные в список аргументов
 -- stage3 :: [(Ident, [Ident])] -> Ast -> Ast
