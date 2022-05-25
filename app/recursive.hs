@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+-- {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Replace case with fromMaybe" #-}
 module Main where
 

@@ -102,9 +102,9 @@ depthsToNodeCoords
 depthsToNodeCoords maxDepth n depthVector = do
   let dims = I2 (constant maxDepth) (constant n)
       depthMatrix = generate dims $ \(I2 i j) ->
-        boolToInt ((depthVector ! (I1 j)) Acc.== i)
+        boolToInt ((depthVector ! I1 j) Acc.== i)
       scanMatrix = Acc.transpose (Acc.scanl1 (+) depthMatrix)
-  Acc.imap (\(I2 i j) x -> x * boolToInt (j Acc.<= depthVector ! (I1 i))) scanMatrix
+  Acc.imap (\(I2 i j) x -> x * boolToInt (j Acc.<= depthVector ! I1 i)) scanMatrix
 
 type Scope = [Ident]
 
