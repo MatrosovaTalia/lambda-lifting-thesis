@@ -3,6 +3,11 @@
 {-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns #-}
 module ScopesParallel where
 
 import           Ast.Abs
@@ -16,6 +21,11 @@ import           Data.List                         (elemIndex, zip4)
 import           GHC.Generics                      (Generic)
 import           Recursive                         (FreeAndDeclared (..),
                                                     freeAndDeclaredDecl)
+
+data DeBruijnIndex = DeBruijnIndex
+  { nestedIndex :: Int
+  , scopeIndex  :: Int
+  } deriving (Show, Eq, Generic, Elt)
 
 data NodeType
     = NodeProgram
@@ -48,11 +58,7 @@ data NodeType
     | NodeEQUAL
     | NodeNEQUAL
     deriving (Show, Eq, Generic, Elt)
-
-data DeBruijnIndex = DeBruijnIndex
-  { nestedIndex :: Int
-  , scopeIndex  :: Int
-  } deriving (Show, Eq, Generic, Elt)
+Acc.mkPattern ''NodeType
 
 data Entry = Entry {
     entryDepth    :: Int,
@@ -275,4 +281,63 @@ depthsTree = map (<> "─") . scanr1 prev . map defaultLine
         g '└' '└' = '├'
         g '─' '├' = '┬'
         g c _     = c
+
+isDef :: Acc.Exp NodeType -> Acc.Exp Bool
+isDef = Acc.match $ \case
+  NodeDeclDef_{} -> Acc.True_
+  _ -> Acc.False_
+
+
+findAncestorsOfType :: (Acc.Exp NodeType -> Acc.Exp Acc.Bool) -> PAST -> Acc (Acc.Matrix Int)
+findAncestorsOfType isDef past@PAST{..}
+    = selectRows closestAncestorIndexVec focusNodes
+    where
+        focusNodes = findNodesOfType isDef past
+        parentCoords = getParentCoordinates nodeCoords
+
+        closestAncestorIndexVec = Acc.fold1 max $ Acc.imap
+            (\(I2 i j) e -> boolToInt e * j)
+            (innerProduct (\a b -> a Acc.== b Acc.|| b Acc.== 0) (Acc.&&) parentCoords focusNodes)
+
+findNodesOfType :: (Acc.Exp NodeType -> Acc.Exp Bool) -> PAST -> Acc (Acc.Matrix Int)
+findNodesOfType isDef past@PAST{..}
+    = selectRows selector nodeCoords
+    where
+        selector = Acc.afst
+                 $ Acc.filter (Acc.>= 0)
+                 $ Acc.imap (\(I1 i) v -> Acc.boolToInt v * (i + 1) - 1)
+                 $ Acc.map isDef nodeTypeVector
+
+selectRows :: (Elt a) => Acc (Vector Int) -> Acc (Matrix a) -> Acc (Matrix a)
+selectRows rowIndex arr = Acc.zipWith (\i j -> arr ! I2 i j) rowIndexMat colIndexMat
+    where
+        nResultRows = Acc.size rowIndex
+        (I2 _ nCols) = Acc.shape arr
+        rowIndexMat = Acc.replicate (Acc.lift (Z :. Acc.All :. nCols)) rowIndex
+        colIndexMat = Acc.replicate (Acc.lift (Z :. nResultRows :. Acc.All))
+            $ Acc.enumFromN (I1 nCols) (0 :: Acc.Exp Int)
+
+
+-- Inner product of 2 matrices (general case of matrix multiplication with custom product and sum combinators)
+innerProduct :: (Acc.Elt a, Acc.Elt b, Acc.Elt c)
+    => (Acc.Exp a -> Acc.Exp b -> Acc.Exp c)  -- product function: how to combine 2 elements from two matrices
+    -> (Acc.Exp c -> Acc.Exp c -> Acc.Exp c)  -- sum function: how to combine the row of results into single element
+    -> Acc (Matrix a)             -- ma x x
+    -> Acc (Matrix b)             -- x x nb 
+    -> Acc (Matrix c)
+innerProduct prodF sumF a b = Acc.fold1 sumF $ Acc.zipWith prodF aExt bExt
+    where
+        -- r1 == c2 - precondition
+        (I2 r1 _) = Acc.shape a
+        (I2 r2 _) = Acc.shape b
+
+        aExt = Acc.replicate (Acc.lift (Z :. Acc.All :. r2 :. Acc.All)) a
+        bExt = Acc.replicate (Acc.lift (Z :. r1 :. Acc.All :. Acc.All)) b
+
+getParentCoordinates :: Acc (Matrix Int) -> Acc (Matrix Int) 
+getParentCoordinates nodeCoords = Acc.imap (\i e -> Acc.boolToInt (Acc.not (isReplacedWithZero i)) * e) nodeCoords
+    where
+        (I2 _ nCols) = Acc.shape nodeCoords
+        isReplacedWithZero (I2 i j) = j + 1 Acc.== nCols Acc.|| nodeCoords Acc.! I2 i j Acc.== 0
+
 

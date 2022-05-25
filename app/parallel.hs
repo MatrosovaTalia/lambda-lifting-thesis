@@ -14,6 +14,8 @@ import           System.IO
 import           Text.Show
 -- import           Data.Map
 import           ScopesParallel
+import qualified Data.Array.Accelerate.LLVM.Native as Acc
+
 
 
 main :: IO ()
@@ -29,6 +31,10 @@ main = do
       putStr $ ppNodesWithDepth nodesWithDepth
       let past = toPAST ast
       putStr (ppPAST past)
+      print (Acc.run (findNodesOfType isDef past))
+      -- print (Acc.run (findAncestorsOfType isDef past))
+  
+  
 
 -- treeToVectorTree :: rAst -> VectorTree
 -- treeToVectorTree tree = (depthAcc, typesAcc, valuesAcc)
