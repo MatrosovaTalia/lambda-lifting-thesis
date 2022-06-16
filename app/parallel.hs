@@ -20,7 +20,7 @@ import qualified Data.Array.Accelerate.LLVM.Native as Acc
 
 main :: IO ()
 main = do
-  handle <- openFile "tests/sum.py" ReadMode
+  handle <- openFile "tests/small_sum.py" ReadMode
   input <- hGetContents handle
   let tokens = resolveLayout True (myLexer input)
   case pAst tokens of
@@ -32,7 +32,7 @@ main = do
       let past = toPAST ast
       putStr (ppPAST past)
       print (Acc.run (findNodesOfType isDef past))
-      -- print (Acc.run (findAncestorsOfType isDef past))
+      print (Acc.run (findAncestorsOfType isDef past))
   
   
 
